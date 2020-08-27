@@ -64,7 +64,7 @@ static GtkBox * scan_create_combo_box_lnb ( Scan *scan )
 	lnb_set_name_combo ( scan->combo_lnb );
 	gtk_combo_box_set_active ( GTK_COMBO_BOX ( scan->combo_lnb ), 0 );
 
-	scan->button_lnb = (GtkButton *)gtk_button_new_with_label ( "🛈" );
+	scan->button_lnb = control_create_button ( NULL, "dvb-info", "🛈", 16 );
 
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( scan->combo_lnb  ), TRUE, TRUE, 0 );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( scan->button_lnb ), TRUE, TRUE, 0 );

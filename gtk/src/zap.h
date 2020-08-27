@@ -41,12 +41,18 @@ struct _Zap
 	GtkTreeView *treeview;
 	GtkEntry *entry_file;
 	GtkComboBoxText *combo_dmx;
+	GtkCheckButton *toggled_prw, *toggled_rec, *toggled_stm, *toggled_tmo;
 
 	bool zap_status;
+	bool stm_status, rec_status, prw_status;
+
+	ulong prw_signal_id, rec_signal_id, stm_signal_id, tmo_signal_id;
 };
 
 Zap * zap_new (void);
 void zap_destroy ( Zap *zap );
+void zap_stop_toggled_all ( Zap *zap );
+void zap_set_active_toggled_block ( ulong signal_id, bool active, GtkCheckButton *toggle );
 void zap_treeview_append ( const char *channel, uint16_t sid, uint16_t apid, uint16_t vpid, Zap *zap );
 
 #endif // ZAP_H

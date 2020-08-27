@@ -72,6 +72,23 @@ static void scan_signal_set_format_out ( GtkComboBoxText *combo_box, Dvbv5 *dvbv
 	dvbv5->output_format = out[num];
 }
 
+static void scan_signal_drag_in ( G_GNUC_UNUSED GtkGrid *grid, GdkDragContext *ct, G_GNUC_UNUSED int x, G_GNUC_UNUSED int y,
+        GtkSelectionData *s_data, G_GNUC_UNUSED uint info, guint32 time, Dvbv5 *dvbv5 )
+{
+	char **uris = gtk_selection_data_get_uris ( s_data );
+
+        free ( dvbv5->input_file );
+        dvbv5->input_file = uri_get_path ( uris[0] );
+
+        char *name = g_path_get_basename ( dvbv5->input_file );
+        gtk_entry_set_text ( dvbv5->scan->entry_int, name );
+        free ( name );
+
+	g_strfreev ( uris );
+
+	gtk_drag_finish ( ct, TRUE, FALSE, time );
+}
+
 static void scan_signal_set_lna ( GtkComboBoxText *combo_box, Dvbv5 *dvbv5 )
 {
 	int num = gtk_combo_box_get_active ( GTK_COMBO_BOX ( combo_box ) );
@@ -113,4 +130,8 @@ void scan_signals ( Dvbv5 *dvbv5 )
 	g_signal_connect ( dvbv5->scan->combo_lnb,  "changed", G_CALLBACK ( scan_signal_set_lnb ), dvbv5 );
 	g_signal_connect ( dvbv5->scan->combo_lna,  "changed", G_CALLBACK ( scan_signal_set_lna ), dvbv5 );
 	g_signal_connect ( dvbv5->scan->button_lnb, "clicked", G_CALLBACK ( scan_signal_clicked_button_lnb ), dvbv5 );
+
+	gtk_drag_dest_set ( GTK_WIDGET ( dvbv5->scan->grid ), GTK_DEST_DEFAULT_ALL, NULL, 0, GDK_ACTION_COPY );
+	gtk_drag_dest_add_uri_targets  ( GTK_WIDGET ( dvbv5->scan->grid ) );
+	g_signal_connect ( dvbv5->scan->grid, "drag-data-received", G_CALLBACK ( scan_signal_drag_in ), dvbv5 );
 }

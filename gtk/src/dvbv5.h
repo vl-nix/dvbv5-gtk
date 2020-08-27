@@ -14,6 +14,7 @@
 #include "scan.h"
 #include "level.h"
 #include "control.h"
+#include "zap-gst.h"
 
 #include <linux/dvb/dmx.h>
 #include <libdvbv5/dvb-dev.h>
@@ -23,6 +24,7 @@
 #include <libdvbv5/dvb-v5-std.h>
 
 #include <gtk/gtk.h>
+#include <gst/gst.h>
 
 #define MAX_AUDIO 32
 
@@ -47,8 +49,11 @@ struct _Dvbv5
 
 	GtkWindow *window;
 	GtkNotebook *notebook;
-	GtkLabel *dvb_name, *label_freq;
-	GtkCheckButton *toggle_fe;
+	GtkBox *v_box_pref;
+	GtkLabel *dvb_name, *label_freq, *label_rec;
+	GtkEntry *entry_host, *entry_port;
+	GtkEntry *entry_rec_dir, *entry_theme;
+	GtkCheckButton *toggle_fe, *toggle_be, *toggle_dB;
 
 	GMutex mutex;
 	GThread *thread;
@@ -59,6 +64,10 @@ struct _Dvbv5
 	Level *level;
 	Control *control;
 
+	Player *player;
+	Record *record;
+	TcpServer *server;
+
 	struct dvb_device *dvb_scan, *dvb_fe, *dvb_zap;
 	struct dvb_open_descriptor *pat_fd, *pmt_fd, *video_fd, *audio_fds[MAX_AUDIO];
 
@@ -66,10 +75,19 @@ struct _Dvbv5
 	char *input_file, *output_file, *zap_file;
 	enum dvb_file_formats input_format, output_format;
 
+	uint8_t cur_sys, rec_cnt;
 	uint16_t apids[MAX_AUDIO], pids[6]; // 0 - sid, 1 - vpid, 2 - apid, 3 - apid_len, 4 - sid found, 5 - vpid found
 	uint32_t freq_scan, progs_scan, cookie;
 
-	bool fe_lock, debug;
+	bool fe_lock, rec_lr, debug;
+
+	GDBusConnection *connect;
+
+	time_t t_fe_start;
+
+	GSettings *settings;
+	bool dark;
+	uint8_t icon_size, opacity;
 };
 
 GType dvbv5_get_type (void);
