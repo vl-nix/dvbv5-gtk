@@ -12,11 +12,13 @@
 
 void zap_set_active_toggled_block ( ulong signal_id, bool active, GtkCheckButton *toggle )
 {
+#ifndef LIGHT
 	g_signal_handler_block   ( toggle, signal_id );
 
 	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON ( toggle ), active );
 
 	g_signal_handler_unblock ( toggle, signal_id );
+#endif
 }
 
 void zap_stop_toggled_all ( Zap *zap )
@@ -113,10 +115,13 @@ static void zap_init ( Zap *zap )
 	GtkButton *button_clear = (GtkButton *)gtk_button_new_from_icon_name ( "edit-clear", GTK_ICON_SIZE_MENU );
 	g_signal_connect_swapped ( button_clear, "clicked", G_CALLBACK ( gtk_list_store_clear ), GTK_LIST_STORE ( gtk_tree_view_get_model ( zap->treeview ) ) );
 
+#ifndef LIGHT
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->toggled_prw ), FALSE, FALSE, 0 );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->toggled_rec ), FALSE, FALSE, 0 );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->toggled_stm ), FALSE, FALSE, 0 );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->toggled_tmo ), FALSE, FALSE, 0 );
+#endif
+
 	gtk_box_pack_end   ( h_box, GTK_WIDGET ( button_clear     ), FALSE, FALSE, 0 );
 
 	gtk_box_pack_start ( zap->v_box, GTK_WIDGET ( h_box ), FALSE, FALSE, 5 );

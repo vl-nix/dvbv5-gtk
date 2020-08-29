@@ -7,6 +7,7 @@
 * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
+#ifndef LIGHT
 
 #include "zap-gst.h"
 
@@ -383,3 +384,5 @@ Player * player_new ( bool add_time )
 
 	return NULL;
 }
+
+#endif

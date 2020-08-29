@@ -1,2 +1,2 @@
 option('lib', type: 'boolean', value: false, description: 'build libdvbv5')
-option('dev', type: 'boolean', value: false, description: 'build libdvbv5-dev')
+option('light', type: 'boolean', value: false, description: 'Light: Without - Preview / Record / Stream')

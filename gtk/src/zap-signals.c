@@ -10,6 +10,19 @@
 #include "dvbv5.h"
 #include "file.h"
 
+static bool zap_signal_check_fe_lock ( Dvbv5 *dvbv5 )
+{
+	if ( dvbv5->dvb_zap && !dvbv5->fe_lock )
+	{
+		g_signal_emit_by_name ( dvbv5->control, "button-clicked", "stop" );
+		dvbv5_message_dialog ( "Zap:", "FE_HAS_LOCK - failed", GTK_MESSAGE_WARNING, dvbv5->window );
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+#ifndef LIGHT
 /* Returns a newly-allocated string holding the result. Free with free() */
 static char * zap_signal_time_to_str ()
 {
@@ -42,18 +55,6 @@ static void zap_signal_set_sensitive ( Zap *zap)
 	gtk_widget_set_sensitive ( GTK_WIDGET ( zap->toggled_rec ), TRUE );
 	gtk_widget_set_sensitive ( GTK_WIDGET ( zap->toggled_stm ), TRUE );
 	gtk_widget_set_sensitive ( GTK_WIDGET ( zap->toggled_tmo ), TRUE );
-}
-
-static bool zap_signal_check_fe_lock ( Dvbv5 *dvbv5 )
-{
-	if ( dvbv5->dvb_zap && !dvbv5->fe_lock )
-	{
-		g_signal_emit_by_name ( dvbv5->control, "button-clicked", "stop" );
-		dvbv5_message_dialog ( "Zap:", "FE_HAS_LOCK - failed", GTK_MESSAGE_WARNING, dvbv5->window );
-		return FALSE;
-	}
-
-	return TRUE;
 }
 
 static bool zap_signal_check_all ( Dvbv5 *dvbv5 )
@@ -287,6 +288,7 @@ static void zap_signal_toggled_record ( GtkToggleButton *button, Dvbv5 *dvbv5 )
 		zap_signal_set_sensitive ( dvbv5->zap );
 	}
 }
+#endif
 
 static void zap_signal_trw_row_act ( GtkTreeView *tree_view, GtkTreePath *path, G_GNUC_UNUSED GtkTreeViewColumn *column, Dvbv5 *dvbv5 )
 {
@@ -320,7 +322,7 @@ static void zap_signal_trw_row_act ( GtkTreeView *tree_view, GtkTreePath *path, 
 					gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON ( dvbv5->toggle_fe ), TRUE );
 			}
 			else
-				gtk_window_set_title ( dvbv5->window, "Dvbv5-Gtk" );
+				gtk_window_set_title ( dvbv5->window, PROGNAME );
 
 			free ( channel );
 		}
@@ -404,8 +406,10 @@ void zap_signals ( const OutDemux out_demux_n[], uint8_t n_elm, Dvbv5 *dvbv5 )
 	g_signal_connect ( dvbv5->zap->treeview,   "row-activated",      G_CALLBACK ( zap_signal_trw_row_act ), dvbv5 );
 	g_signal_connect ( dvbv5->zap->treeview,   "drag-data-received", G_CALLBACK ( zap_signal_drag_in     ), dvbv5 );
 
+#ifndef LIGHT
 	dvbv5->zap->prw_signal_id = g_signal_connect ( dvbv5->zap->toggled_prw, "toggled", G_CALLBACK ( zap_signal_toggled_preview ), dvbv5 );
 	dvbv5->zap->rec_signal_id = g_signal_connect ( dvbv5->zap->toggled_rec, "toggled", G_CALLBACK ( zap_signal_toggled_record  ), dvbv5 );
 	dvbv5->zap->stm_signal_id = g_signal_connect ( dvbv5->zap->toggled_stm, "toggled", G_CALLBACK ( zap_signal_toggled_stream  ), dvbv5 );
 	dvbv5->zap->tmo_signal_id = g_signal_connect ( dvbv5->zap->toggled_tmo, "toggled", G_CALLBACK ( zap_signal_toggled_timeov  ), dvbv5 );
+#endif
 }

@@ -71,7 +71,7 @@ static void dvbv5_about ( Dvbv5 *dvbv5 )
 
 	const char *authors[] = { "Mauro Carvalho Chehab", "Stepan Perun", "zampedro", "Ro-Den", " ", NULL };
 
-	gtk_about_dialog_set_program_name ( dialog, "Dvbv5-Gtk" );
+	gtk_about_dialog_set_program_name ( dialog, PROGNAME );
 	gtk_about_dialog_set_version ( dialog, VERSION );
 	gtk_about_dialog_set_license_type ( dialog, GTK_LICENSE_GPL_2_0 );
 	gtk_about_dialog_set_authors ( dialog, authors );
@@ -731,6 +731,7 @@ static void dvbv5_stats_update_freq ( GtkLabel *label, uint32_t freq, uint32_t p
 	free ( text );
 }
 
+#ifndef LIGHT
 static ulong file_query_info_uint ( const char *file_path, const char *query_info, const char *attribute )
 {
 	GFile *file = g_file_new_for_path ( file_path );
@@ -785,6 +786,7 @@ static void dvbv5_set_status_server ( Dvbv5 *dvbv5 )
 
 	gtk_label_set_markup ( dvbv5->label_rec, text );
 }
+#endif
 
 static void dvbv5_set_status ( uint32_t freq, Dvbv5 *dvbv5 )
 {
@@ -796,6 +798,7 @@ static void dvbv5_set_status ( uint32_t freq, Dvbv5 *dvbv5 )
 	else
 		dvbv5_stats_update_freq ( dvbv5->label_freq, ( sat ) ? freq / 1000 : freq / 1000000, 0, "L-Freq:  ", "MHz" );
 
+#ifndef LIGHT
 	if ( dvbv5->zap->stm_status )
 	{
 		dvbv5_set_status_server ( dvbv5 );
@@ -806,6 +809,7 @@ static void dvbv5_set_status ( uint32_t freq, Dvbv5 *dvbv5 )
 	}
 	else
 		gtk_label_set_text ( dvbv5->label_rec, "" );
+#endif
 }
 
 static void dvbv5_dvb_fe_run_beep ( uint8_t sgl_snr )
@@ -1065,15 +1069,17 @@ void dvbv5_get_dvb_info ( Dvbv5 *dvbv5 )
 
 static void dvbv5_clicked_stop ( Dvbv5 *dvbv5 )
 {
+#ifndef LIGHT
 	if ( dvbv5->player ) player_stop ( dvbv5->player );
 	if ( dvbv5->record ) record_stop ( dvbv5->record );
 	if ( dvbv5->server ) tcpserver_stop ( dvbv5->server );
+#endif
 
 	dvbv5->zap->zap_status = FALSE;
 	dvbv5_dvb_zap_auto_free ( dvbv5 );
 
 	if ( dvbv5->window ) zap_stop_toggled_all ( dvbv5->zap );
-	if ( dvbv5->window ) gtk_window_set_title ( dvbv5->window, "Dvbv5-Gtk" );
+	if ( dvbv5->window ) gtk_window_set_title ( dvbv5->window, PROGNAME );
 
 	dvbv5->thread_stop = TRUE;
 	dvbv5->stat_stop   = TRUE;
@@ -1215,9 +1221,11 @@ static void dvbv5_window_quit ( G_GNUC_UNUSED GtkWindow *window, Dvbv5 *dvbv5 )
 
 	dvbv5->window = NULL;
 
+#ifndef LIGHT
 	if ( dvbv5->player ) player_destroy ( dvbv5->player );
 	if ( dvbv5->record ) record_destroy ( dvbv5->record );
 	if ( dvbv5->server ) tcpserver_destroy ( dvbv5->server );
+#endif
 
 	zap_destroy ( dvbv5->zap );
 	scan_destroy ( dvbv5->scan );
@@ -1241,7 +1249,7 @@ static void dvbv5_new_window ( GApplication *app )
 	gtk_icon_theme_add_resource_path ( gtk_icon_theme_get_default (), "/dvbv5/icons" );
 
 	dvbv5->window = (GtkWindow *)gtk_application_window_new ( GTK_APPLICATION ( app ) );
-	gtk_window_set_title ( dvbv5->window, "Dvbv5-Gtk" );
+	gtk_window_set_title ( dvbv5->window, PROGNAME );
 	gtk_window_set_icon_name ( dvbv5->window, "display" );
 	g_signal_connect ( dvbv5->window, "destroy", G_CALLBACK ( dvbv5_window_quit ), dvbv5 );
 
@@ -1302,9 +1310,11 @@ static void dvbv5_activate ( GApplication *app )
 
 static void dvbv5_init ( Dvbv5 *dvbv5 )
 {
+#ifndef LIGHT
 	dvbv5->record = record_new ();
 	dvbv5->server = tcpserver_new ();
 	dvbv5->player = player_new ( TRUE );
+#endif
 
 	dvbv5->dvb_scan = NULL;
 	dvbv5->dvb_fe   = NULL;
@@ -1366,7 +1376,9 @@ static void dvbv5_set_debug ()
 
 int main (void)
 {
+#ifndef LIGHT
 	gst_init ( NULL, NULL );
+#endif
 
 	dvbv5_set_debug ();
 

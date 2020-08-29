@@ -9,8 +9,6 @@
 
 #include "lnb.h"
 
-#include <libdvbv5/dvb-sat.h>
-
 enum lnb_type
 {
 	LNB_EXT,

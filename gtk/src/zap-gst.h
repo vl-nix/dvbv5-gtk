@@ -11,6 +11,8 @@
 #ifndef SCAN_GST_H
 #define SCAN_GST_H
 
+#ifndef LIGHT
+
 #include <gst/gst.h>
 #include <stdint.h>
 
@@ -64,5 +66,6 @@ void player_destroy ( Player *player );
 void player_stop  ( Player *player );
 void player_play  ( Player *player, const char *uri );
 
+#endif
 
 #endif

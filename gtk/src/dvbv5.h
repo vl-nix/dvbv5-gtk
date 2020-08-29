@@ -14,7 +14,10 @@
 #include "scan.h"
 #include "level.h"
 #include "control.h"
-#include "zap-gst.h"
+
+#ifndef LIGHT
+  #include "zap-gst.h"
+#endif
 
 #include <linux/dvb/dmx.h>
 #include <libdvbv5/dvb-dev.h>
@@ -24,7 +27,10 @@
 #include <libdvbv5/dvb-v5-std.h>
 
 #include <gtk/gtk.h>
-#include <gst/gst.h>
+
+#ifndef LIGHT
+  #include <gst/gst.h>
+#endif
 
 #define MAX_AUDIO 32
 
@@ -64,9 +70,11 @@ struct _Dvbv5
 	Level *level;
 	Control *control;
 
+#ifndef LIGHT
 	Player *player;
 	Record *record;
 	TcpServer *server;
+#endif
 
 	struct dvb_device *dvb_scan, *dvb_fe, *dvb_zap;
 	struct dvb_open_descriptor *pat_fd, *pmt_fd, *video_fd, *audio_fds[MAX_AUDIO];
