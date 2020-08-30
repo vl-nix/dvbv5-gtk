@@ -18,8 +18,6 @@ struct _Control
 
 G_DEFINE_TYPE ( Control, control, GTK_TYPE_BOX )
 
-static GtkImage * control_create_image ( const char *icon, uint8_t size );
-
 static uint8_t size_icon = 20;
 static const char *b_n[NUM_BUTTONS][3] = 
 {
@@ -35,20 +33,11 @@ void control_button_set_sensitive ( const char *name, bool set, Control *control
 	}
 }
 
-void control_resize_icon ( uint8_t icon_size, Control *control )
-{
-	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
-	{
-		GtkImage *image = control_create_image ( b_n[c][1], icon_size );
-		gtk_button_set_image ( control->button[c], GTK_WIDGET ( image ) );
-	}
-}
-
 static bool control_check_icon_theme ( const char *name_icon )
 {
 	bool ret = FALSE;
 
-	char **icons = g_resources_enumerate_children ( "/dvbv5/icons", G_RESOURCE_LOOKUP_FLAGS_NONE, NULL );
+	char **icons = g_resources_enumerate_children ( "/dvbv5", G_RESOURCE_LOOKUP_FLAGS_NONE, NULL );
 
 	if ( icons == NULL ) return ret;
 
@@ -87,6 +76,17 @@ static GtkButton * control_set_image_button ( const char *icon, uint8_t size )
 	return button;
 }
 
+void control_resize_icon ( uint8_t icon_size, Control *control )
+{
+	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
+	{
+		if ( !control_check_icon_theme ( b_n[c][1] ) ) continue;
+
+		GtkImage *image = control_create_image ( b_n[c][1], icon_size );
+		gtk_button_set_image ( control->button[c], GTK_WIDGET ( image ) );
+	}
+}
+
 GtkButton * control_create_button ( GtkBox *h_box, const char *name, const char *icon_u, uint8_t icon_size )
 {
 	GtkButton *button;
@@ -120,7 +120,6 @@ static void control_init ( Control *control )
 		control->button[c] = control_create_button ( box, b_n[c][1], b_n[c][2], size_icon );
 		g_signal_connect ( control->button[c], "clicked", G_CALLBACK ( control_signal_handler ), control );
 	}
-
 }
 
 static void control_finalize ( GObject *object )

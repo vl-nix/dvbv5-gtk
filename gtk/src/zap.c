@@ -133,7 +133,13 @@ static void zap_init ( Zap *zap )
 	gtk_entry_set_text ( zap->entry_file, "dvb_channel.conf" );
 	g_object_set ( zap->entry_file, "editable", FALSE, NULL );
 	gtk_entry_set_icon_from_icon_name ( zap->entry_file, GTK_ENTRY_ICON_SECONDARY, "folder" );
+
+#ifdef LIGHT
+	gtk_entry_set_icon_from_icon_name ( zap->entry_file, GTK_ENTRY_ICON_PRIMARY, "info" );
+#else
 	gtk_entry_set_icon_from_icon_name ( zap->entry_file, GTK_ENTRY_ICON_PRIMARY, "dvb-info" );
+#endif
+
 	gtk_entry_set_icon_tooltip_text ( GTK_ENTRY ( zap->entry_file ), GTK_ENTRY_ICON_PRIMARY, "Format only DVBV5" );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->entry_file ), TRUE, TRUE, 0 );
 

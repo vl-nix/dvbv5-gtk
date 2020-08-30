@@ -1192,7 +1192,9 @@ static GtkBox * dvbv5_create_info ( Dvbv5 *dvbv5 )
 
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( dvbv5->label_freq ), FALSE, FALSE, 0 );
 	// gtk_box_pack_end   ( h_box, GTK_WIDGET ( dvbv5->toggle_dB  ), FALSE, FALSE, 0 );
+#ifndef LIGHT
 	gtk_box_pack_end   ( h_box, GTK_WIDGET ( dvbv5->toggle_be  ), FALSE, FALSE, 0 );
+#endif
 	gtk_box_pack_end   ( h_box, GTK_WIDGET ( dvbv5->toggle_fe  ), FALSE, FALSE, 0 );
 	gtk_box_pack_end   ( h_box, GTK_WIDGET ( dvbv5->label_rec  ), FALSE, FALSE, 0 );
 
@@ -1217,7 +1219,9 @@ static GtkBox * dvbv5_create_control_box ( Dvbv5 *dvbv5 )
 
 static void dvbv5_window_quit ( G_GNUC_UNUSED GtkWindow *window, Dvbv5 *dvbv5 )
 {
+#ifndef LIGHT
 	save_pref ( dvbv5 );
+#endif
 
 	dvbv5->window = NULL;
 
@@ -1246,7 +1250,7 @@ static void dvbv5_new_window ( GApplication *app )
 
 	Dvbv5 *dvbv5 = DVBV5_APPLICATION ( app );
 
-	gtk_icon_theme_add_resource_path ( gtk_icon_theme_get_default (), "/dvbv5/icons" );
+	gtk_icon_theme_add_resource_path ( gtk_icon_theme_get_default (), "/dvbv5" );
 
 	dvbv5->window = (GtkWindow *)gtk_application_window_new ( GTK_APPLICATION ( app ) );
 	gtk_window_set_title ( dvbv5->window, PROGNAME );
@@ -1277,15 +1281,17 @@ static void dvbv5_new_window ( GApplication *app )
 	zap_signals ( out_demux_n, G_N_ELEMENTS ( out_demux_n ), dvbv5 );
 
 	GtkBox *c_box = dvbv5_create_control_box ( dvbv5 );
+#ifndef LIGHT
 	dvbv5->v_box_pref = create_pref ( dvbv5 );
-
+#endif
 	dvbv5->notebook = (GtkNotebook *)gtk_notebook_new ();
 	gtk_notebook_set_scrollable ( dvbv5->notebook, TRUE );
 
 	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->scan->grid ), gtk_label_new ( "Scan" ) );
 	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->zap->v_box ), gtk_label_new ( "Zap"  ) );
+#ifndef LIGHT
 	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->v_box_pref ), gtk_label_new ( "⚒"  ) );
-
+#endif
 	gtk_notebook_set_tab_pos ( dvbv5->notebook, GTK_POS_TOP );
 	gtk_box_pack_start ( main_vbox, GTK_WIDGET (dvbv5->notebook), TRUE, TRUE, 0 );
 
@@ -1300,7 +1306,9 @@ static void dvbv5_new_window ( GApplication *app )
 
 	dvbv5->connect = g_bus_get_sync ( G_BUS_TYPE_SESSION, NULL, NULL );
 
+#ifndef LIGHT
 	set_pref ( dvbv5 );
+#endif
 }
 
 static void dvbv5_activate ( GApplication *app )
@@ -1347,7 +1355,9 @@ static void dvbv5_init ( Dvbv5 *dvbv5 )
 	dvbv5->debug = ( verbose ) ? TRUE : FALSE;
 
 	dvbv5->settings = NULL;
+#ifndef LIGHT
 	load_pref ( dvbv5 );
+#endif
 }
 
 static void dvbv5_finalize ( GObject *object )

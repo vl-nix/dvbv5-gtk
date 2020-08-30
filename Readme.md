@@ -4,7 +4,7 @@
 * Zap: Preview / Record / Stream
 * Drag and Drop: Scan, Zap
 
-##### Based in [v4l-utils-1.20.0](https://linuxtv.org/downloads/v4l-utils/)
+#### Based in [v4l-utils-1.20.0](https://linuxtv.org/downloads/v4l-utils/)
 
 #### License
 
@@ -36,4 +36,4 @@
    * Binary: sudo ninja -C build uc uninstall
      1. Schema: sudo ninja -C build uc
 
-6. Debug: DVB_DEBUG=1 build/dvbv5-gtk
+6. Debug: DVB_DEBUG=1 build/gtk/src/dvbv5-gtk

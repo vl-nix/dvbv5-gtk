@@ -41,6 +41,7 @@ if not get_option('lib')
 
   message('Build ' + project_name + ' ' + project_version)
 
+  res = []
   bin_c_args = ['-DVERSION="' + project_version + '"']
 
   if get_option('light')
@@ -58,7 +59,7 @@ if not get_option('lib')
     lib_dep = declare_dependency(link_with: lib_both.get_static_lib(), dependencies: guidepend)
   endif
 
-  subdir('gtk')
+  subdir('gtk/data')
   subdir('gtk/src')
 
 endif
