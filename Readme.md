@@ -37,3 +37,5 @@
      1. Schema: sudo ninja -C build uc
 
 6. Debug: DVB_DEBUG=1 build/gtk/src/dvbv5-gtk
+
+#### [Debian](https://github.com/vl-nix/dvbv5-gtk/releases/download/1.20.35/dvbv5-gtk_1.20.35_amd64.deb)
