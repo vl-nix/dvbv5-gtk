@@ -14,7 +14,7 @@
 
 typedef gboolean bool;
 
-#define NUM_BUTTONS 6
+#define NUM_BUTTONS 4
 
 #define CONTROL_TYPE_BOX                  (control_get_type ())
 G_DECLARE_FINAL_TYPE ( Control, control, CONTROL, BOX, GtkBox )

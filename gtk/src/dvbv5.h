@@ -60,6 +60,7 @@ struct _Dvbv5
 	GtkEntry *entry_host, *entry_port;
 	GtkEntry *entry_rec_dir, *entry_theme;
 	GtkCheckButton *toggle_fe, *toggle_be, *toggle_dB;
+	GtkPopover *popover;
 
 	GMutex mutex;
 	GThread *thread;

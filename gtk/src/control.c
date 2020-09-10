@@ -22,7 +22,7 @@ static uint8_t size_icon = 20;
 static const char *b_n[NUM_BUTTONS][3] = 
 {
 	{ "start", "dvb-start", "⏵" }, { "stop", "dvb-stop", "⏹" }, { "mini", "dvb-mini", "🗕" },
-	{ "dark",  "dvb-dark",  "⏾" }, { "info", "dvb-info", "🛈" }, { "quit", "dvb-quit", "⏻" }
+	/*{ "dark",  "dvb-dark",  "⏾" }, { "info", "dvb-info", "🛈" },*/ { "quit", "dvb-quit", "⏻" }
 };
 
 void control_button_set_sensitive ( const char *name, bool set, Control *control )

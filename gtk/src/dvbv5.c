@@ -51,11 +51,7 @@ static void dvbv5_about ( Dvbv5 *dvbv5 )
 	GtkAboutDialog *dialog = (GtkAboutDialog *)gtk_about_dialog_new ();
 	gtk_window_set_transient_for ( GTK_WINDOW ( dialog ), dvbv5->window );
 
-	gtk_window_set_icon_name ( GTK_WINDOW ( dialog ), "display" );
-	gtk_about_dialog_set_logo_icon_name ( dialog, "display" );
-
-	GdkPixbuf *pixbuf = gtk_icon_theme_load_icon ( gtk_icon_theme_get_default (),
-				"dvb-logo", 48, GTK_ICON_LOOKUP_USE_BUILTIN, NULL );
+	GdkPixbuf *pixbuf = gtk_icon_theme_load_icon ( gtk_icon_theme_get_default (), "dvb-logo", 48, GTK_ICON_LOOKUP_USE_BUILTIN, NULL );
 
 	if ( pixbuf )
 	{
@@ -1118,9 +1114,17 @@ static void dvbv5_clicked_start ( Dvbv5 *dvbv5 )
 	}
 }
 
-static void dvbv5_clicked_info ( Dvbv5 *dvbv5 )
+static void dvbv5_info ( Dvbv5 *dvbv5 )
 {
 	dvbv5_about ( dvbv5 );
+}
+
+static void dvbv5_dark ( G_GNUC_UNUSED Dvbv5 *dvbv5 )
+{
+	bool dark = FALSE;
+	g_object_get ( gtk_settings_get_default(), "gtk-application-prefer-dark-theme", &dark, NULL );
+	g_object_set ( gtk_settings_get_default(), "gtk-application-prefer-dark-theme", !dark, NULL );
+	dvbv5->dark = !dark;
 }
 
 static void dvbv5_clicked_mini ( Dvbv5 *dvbv5 )
@@ -1133,14 +1137,6 @@ static void dvbv5_clicked_mini ( Dvbv5 *dvbv5 )
 	gtk_window_resize ( dvbv5->window, 300, 100 );
 }
 
-static void dvbv5_clicked_dark ( G_GNUC_UNUSED Dvbv5 *dvbv5 )
-{
-	bool dark = FALSE;
-	g_object_get ( gtk_settings_get_default(), "gtk-application-prefer-dark-theme", &dark, NULL );
-	g_object_set ( gtk_settings_get_default(), "gtk-application-prefer-dark-theme", !dark, NULL );
-	dvbv5->dark = !dark;
-}
-
 static void dvbv5_clicked_quit ( Dvbv5 *dvbv5 )
 {
 	gtk_widget_destroy ( GTK_WIDGET ( dvbv5->window ) );
@@ -1148,8 +1144,8 @@ static void dvbv5_clicked_quit ( Dvbv5 *dvbv5 )
 
 static void dvbv5_button_clicked_handler ( G_GNUC_UNUSED Control *control, const char *button, Dvbv5 *dvbv5 )
 {
-	const char *b_n[] = { "start", "stop", "mini", "dark", "info", "quit" };
-	fp funcs[] = { dvbv5_clicked_start, dvbv5_clicked_stop, dvbv5_clicked_mini, dvbv5_clicked_dark, dvbv5_clicked_info, dvbv5_clicked_quit };
+	const char *b_n[] = { "start", "stop", "mini", /*"dark", "info",*/ "quit" };
+	fp funcs[] = { dvbv5_clicked_start, dvbv5_clicked_stop, dvbv5_clicked_mini, /*dvbv5_dark, dvbv5_info,*/ dvbv5_clicked_quit };
 
 	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ ) { if ( g_str_has_prefix ( b_n[c], button ) ) { funcs[c] ( dvbv5 ); break; } }
 }
@@ -1217,6 +1213,65 @@ static GtkBox * dvbv5_create_control_box ( Dvbv5 *dvbv5 )
 	return v_box;
 }
 
+static void dvbv5_header_bar_menu_about ( G_GNUC_UNUSED GtkButton *button, Dvbv5 *dvbv5 )
+{
+	gtk_widget_set_visible ( GTK_WIDGET ( dvbv5->popover ), FALSE );
+	dvbv5_info ( dvbv5 );
+}
+
+static void dvbv5_header_bar_menu_dark ( G_GNUC_UNUSED GtkButton *button, Dvbv5 *dvbv5 )
+{
+	gtk_widget_set_visible ( GTK_WIDGET ( dvbv5->popover ), FALSE );
+	dvbv5_dark ( dvbv5 );
+}
+
+static void dvbv5_header_bar_menu_quit ( G_GNUC_UNUSED GtkButton *button, Dvbv5 *dvbv5 )
+{
+	gtk_widget_set_visible ( GTK_WIDGET ( dvbv5->popover ), FALSE );
+	gtk_widget_destroy ( GTK_WIDGET ( dvbv5->window ) );
+}
+
+static GtkHeaderBar * dvbv5_header_bar ( Dvbv5 *dvbv5 )
+{
+	GtkHeaderBar *header_bar = (GtkHeaderBar *)gtk_header_bar_new ();
+	gtk_header_bar_set_show_close_button ( header_bar, TRUE );
+	gtk_header_bar_set_title ( header_bar, PROGNAME );
+	gtk_header_bar_set_has_subtitle ( header_bar, FALSE );
+
+	GtkMenuButton *menu_button = (GtkMenuButton *)gtk_menu_button_new ();
+	gtk_button_set_label ( GTK_BUTTON ( menu_button ), "𝋯" );
+
+	dvbv5->popover = (GtkPopover *)gtk_popover_new ( GTK_WIDGET ( header_bar ) );
+	gtk_popover_set_position ( dvbv5->popover, GTK_POS_TOP );
+	gtk_container_set_border_width ( GTK_CONTAINER ( dvbv5->popover ), 10 );
+
+	GtkBox *vbox = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 5 );
+	gtk_box_set_spacing ( vbox, 5 );
+
+	struct Data { const char *name; void ( *fp ); } data_n[] =
+	{
+		{ "dvb-dark",  dvbv5_header_bar_menu_dark  },
+		{ "dvb-info",  dvbv5_header_bar_menu_about },
+		{ "dvb-quit",  dvbv5_header_bar_menu_quit  }
+	};
+
+	uint8_t c = 0; for ( c = 0; c < G_N_ELEMENTS ( data_n ); c++ )
+	{
+		GtkButton *button = (GtkButton *)gtk_button_new_from_icon_name ( data_n[c].name, GTK_ICON_SIZE_MENU );
+		g_signal_connect ( button, "clicked", G_CALLBACK ( data_n[c].fp ), dvbv5 );
+		gtk_widget_show ( GTK_WIDGET ( button ) );
+		gtk_box_pack_start ( vbox, GTK_WIDGET ( button ), FALSE, FALSE, 0 );
+	}
+
+	gtk_container_add ( GTK_CONTAINER ( dvbv5->popover ), GTK_WIDGET ( vbox ) );
+	gtk_widget_show ( GTK_WIDGET ( vbox ) );
+
+	gtk_menu_button_set_popover ( menu_button, GTK_WIDGET ( dvbv5->popover ) );
+	gtk_header_bar_pack_end ( header_bar, GTK_WIDGET ( menu_button ) );
+
+	return header_bar;
+}
+
 static void dvbv5_window_quit ( G_GNUC_UNUSED GtkWindow *window, Dvbv5 *dvbv5 )
 {
 #ifndef LIGHT
@@ -1267,6 +1322,9 @@ static void dvbv5_new_window ( GApplication *app )
 	}
 	else
 		gtk_window_set_icon_name ( dvbv5->window, "display" );
+
+	GtkHeaderBar *header_bar = dvbv5_header_bar ( dvbv5 );
+	gtk_window_set_titlebar ( dvbv5->window, GTK_WIDGET ( header_bar ) );
 
 	GtkBox *main_vbox = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 0 );
 	gtk_box_set_spacing ( main_vbox, 5 );
