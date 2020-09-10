@@ -37,7 +37,7 @@ endif
 if not get_option('lib')
 
   project_name = meson.project_name() + '-gtk'
-  project_version = meson.project_version() + '.35'
+  project_version = meson.project_version() + '.36'
 
   message('Build ' + project_name + ' ' + project_version)
 
