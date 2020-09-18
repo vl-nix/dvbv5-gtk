@@ -23,7 +23,7 @@
 4. Install: sudo ninja -C build install
 
 5. Uninstall: sudo ninja -C build uc uninstall
-     1. Schema: sudo ninja -C build uc
+   * Schema: sudo ninja -C build uc
 
 6. Debug: DVB_DEBUG=1 build/gtk/src/dvbv5-gtk
 
