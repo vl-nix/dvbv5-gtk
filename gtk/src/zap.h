@@ -30,29 +30,39 @@ struct _OutDemux
 	const char *name;
 };
 
-typedef gboolean bool;
+#define ZAP_TYPE_BOX    zap_get_type ()
+#define ZAP_BOX(obj)    (G_TYPE_CHECK_INSTANCE_CAST ((obj), ZAP_TYPE_BOX, Zap))
+#define ZAP_IS_BOX(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), ZAP_TYPE_BOX))
 
 typedef struct _Zap Zap;
+typedef struct _ZapClass ZapClass;
+
+struct _ZapClass
+{
+	GtkBoxClass parent_class;
+};
 
 struct _Zap
 {
-	GtkBox *v_box;
+	GtkBox parent_instance;
 
 	GtkTreeView *treeview;
 	GtkEntry *entry_file;
 	GtkComboBoxText *combo_dmx;
 	GtkCheckButton *toggled_prw, *toggled_rec, *toggled_stm, *toggled_tmo;
 
-	bool zap_status;
-	bool stm_status, rec_status, prw_status;
+	gboolean zap_status;
+	gboolean stm_status, rec_status, prw_status;
 
 	ulong prw_signal_id, rec_signal_id, stm_signal_id, tmo_signal_id;
 };
 
+GType zap_get_type (void);
+
 Zap * zap_new (void);
-void zap_destroy ( Zap *zap );
+
 void zap_stop_toggled_all ( Zap *zap );
-void zap_set_active_toggled_block ( ulong signal_id, bool active, GtkCheckButton *toggle );
+void zap_set_active_toggled_block ( ulong signal_id, gboolean active, GtkCheckButton *toggle );
 void zap_treeview_append ( const char *channel, uint16_t sid, uint16_t apid, uint16_t vpid, Zap *zap );
 
 #endif // ZAP_H

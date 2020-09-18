@@ -10,7 +10,9 @@
 #include "zap.h"
 #include "control.h"
 
-void zap_set_active_toggled_block ( ulong signal_id, bool active, GtkCheckButton *toggle )
+G_DEFINE_TYPE ( Zap, zap, GTK_TYPE_BOX )
+
+void zap_set_active_toggled_block ( ulong signal_id, gboolean active, GtkCheckButton *toggle )
 {
 #ifndef LIGHT
 	g_signal_handler_block   ( toggle, signal_id );
@@ -94,13 +96,15 @@ static GtkScrolledWindow * zap_create_treeview_scroll ( Zap *zap )
 
 static void zap_init ( Zap *zap )
 {
+	GtkBox *box = GTK_BOX ( zap );
+	gtk_orientable_set_orientation ( GTK_ORIENTABLE ( box ), GTK_ORIENTATION_VERTICAL );
+
 	zap->zap_status = FALSE;
 	zap->rec_status = FALSE;
 	zap->stm_status = FALSE;
 	zap->prw_status = FALSE;
 
-	zap->v_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 0 );
-	gtk_box_pack_start ( zap->v_box, GTK_WIDGET ( zap_create_treeview_scroll ( zap ) ), TRUE, TRUE, 0 );
+	gtk_box_pack_start ( box, GTK_WIDGET ( zap_create_treeview_scroll ( zap ) ), TRUE, TRUE, 0 );
 
 	GtkBox *h_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_HORIZONTAL, 0 );
 	gtk_box_set_spacing ( h_box, 5 );
@@ -124,7 +128,7 @@ static void zap_init ( Zap *zap )
 
 	gtk_box_pack_end   ( h_box, GTK_WIDGET ( button_clear     ), FALSE, FALSE, 0 );
 
-	gtk_box_pack_start ( zap->v_box, GTK_WIDGET ( h_box ), FALSE, FALSE, 5 );
+	gtk_box_pack_start ( box, GTK_WIDGET ( h_box ), FALSE, FALSE, 5 );
 
 	h_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_HORIZONTAL, 0 );
 	gtk_box_set_spacing ( h_box, 5 );
@@ -146,19 +150,21 @@ static void zap_init ( Zap *zap )
 	zap->combo_dmx = (GtkComboBoxText *) gtk_combo_box_text_new ();
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->combo_dmx ), TRUE, TRUE, 0 );
 
-	gtk_box_pack_start ( zap->v_box, GTK_WIDGET ( h_box ), FALSE, FALSE, 0 );
+	gtk_box_pack_start ( box, GTK_WIDGET ( h_box ), FALSE, FALSE, 0 );
 }
 
-void zap_destroy ( Zap *zap )
+static void zap_finalize ( GObject *object )
 {
-	free ( zap );
+	G_OBJECT_CLASS (zap_parent_class)->finalize (object);
 }
 
-Zap * zap_new (void)
+static void zap_class_init ( ZapClass *class )
 {
-	Zap *zap = g_new0 ( Zap, 1 );
-
-	zap_init ( zap );
-
-	return zap;
+	G_OBJECT_CLASS (class)->finalize = zap_finalize;
 }
+
+Zap * zap_new ()
+{
+	return g_object_new ( ZAP_TYPE_BOX, NULL );
+}
+

@@ -65,7 +65,10 @@ static void dvbv5_about ( Dvbv5 *dvbv5 )
 		gtk_about_dialog_set_logo_icon_name ( dialog, "display" );
 	}
 
-	const char *authors[] = { "Mauro Carvalho Chehab", "Stepan Perun", "zampedro", "Ro-Den", " ", NULL };
+	const char *authors[] = { "Stepan Perun", " ", NULL };
+	const char *issues[]  = { "Mauro Carvalho Chehab", "zampedro", "Ro-Den", " ", NULL };
+
+	gtk_about_dialog_add_credit_section ( dialog, "Issues ( github.com )", issues );
 
 	gtk_about_dialog_set_program_name ( dialog, PROGNAME );
 	gtk_about_dialog_set_version ( dialog, VERSION );
@@ -187,7 +190,7 @@ static gpointer dvbv5_dvb_scan_thread_run ( Dvbv5 *dvbv5 )
 		count++;
 		dvb_log ( "Scanning frequency #%d %d", count, freq );
 
-		bool sat = FALSE;
+		gboolean sat = FALSE;
 		if ( dvb_fe_is_satellite ( parms->current_sys ) ) sat = TRUE;
 
 		g_mutex_lock ( &dvbv5->mutex );
@@ -262,9 +265,9 @@ static void dvbv5_dvb_scan_auto_free ( Dvbv5 *dvbv5 )
 	}
 }
 
-static uint8_t dvbv5_get_val_togglebutton ( GtkCheckButton *checkbutton, bool debug )
+static uint8_t dvbv5_get_val_togglebutton ( GtkCheckButton *checkbutton, gboolean debug )
 {
-	bool set = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( checkbutton ) );
+	gboolean set = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( checkbutton ) );
 	const char *name = gtk_widget_get_name  ( GTK_WIDGET ( checkbutton ) );
 
 	uint8_t ret = ( set ) ? 1 : 0;
@@ -274,7 +277,7 @@ static uint8_t dvbv5_get_val_togglebutton ( GtkCheckButton *checkbutton, bool de
 	return ret;
 }
 
-static uint8_t dvbv5_get_val_spinbutton ( GtkSpinButton *spinbutton, bool debug )
+static uint8_t dvbv5_get_val_spinbutton ( GtkSpinButton *spinbutton, gboolean debug )
 {
 	gtk_spin_button_update ( spinbutton );
 
@@ -286,7 +289,7 @@ static uint8_t dvbv5_get_val_spinbutton ( GtkSpinButton *spinbutton, bool debug 
 	return val;
 }
 
-static bool _dvbv5_dvb_scan_init ( Dvbv5 *dvbv5 )
+static gboolean _dvbv5_dvb_scan_init ( Dvbv5 *dvbv5 )
 {
 	dvbv5_dvb_scan_auto_free ( dvbv5 );
 	dvbv5->dvb_scan = dvb_dev_alloc ();
@@ -341,7 +344,7 @@ static bool _dvbv5_dvb_scan_init ( Dvbv5 *dvbv5 )
 	return TRUE;
 }
 
-static bool zap_parse ( const char *file, const char *channel, uint8_t frm, struct dvb_v5_fe_parms *parms, uint16_t pids[], uint16_t apids[], GtkWindow *window )
+static gboolean zap_parse ( const char *file, const char *channel, uint8_t frm, struct dvb_v5_fe_parms *parms, uint16_t pids[], uint16_t apids[], GtkWindow *window )
 {
 	struct dvb_file *dvb_file;
 	struct dvb_entry *entry;
@@ -486,7 +489,7 @@ static uint32_t dvbv5_setup_frontend ( struct dvb_v5_fe_parms *parms )
 	return freq;
 }
 
-static bool dvbv5_zap_set_pes_filter ( struct dvb_open_descriptor *fd, uint16_t pid, dmx_pes_type_t type, dmx_output_t dmx, uint32_t buf_size, const char *type_name )
+static gboolean dvbv5_zap_set_pes_filter ( struct dvb_open_descriptor *fd, uint16_t pid, dmx_pes_type_t type, dmx_output_t dmx, uint32_t buf_size, const char *type_name )
 {
 	if ( verbose ) g_message ( "  %s: DMX_SET_PES_FILTER %d (0x%04x)", type_name, pid, pid );
 
@@ -495,7 +498,7 @@ static bool dvbv5_zap_set_pes_filter ( struct dvb_open_descriptor *fd, uint16_t 
 	return TRUE;
 }
 
-static bool dvbv5_add_pat_pmt ( const char *demux_dev, uint16_t sid, uint8_t demux_descr, uint32_t bsz, Dvbv5 *dvbv5 )
+static gboolean dvbv5_add_pat_pmt ( const char *demux_dev, uint16_t sid, uint8_t demux_descr, uint32_t bsz, Dvbv5 *dvbv5 )
 {
 	int pmtpid = 0;
 
@@ -576,7 +579,7 @@ static void dvbv5_dvb_zap_set_dmx ( Dvbv5 *dvbv5 )
 	}
 }
 
-static bool dvbv5_dvb_zap_check_fe_lock ( Dvbv5 *dvbv5 )
+static gboolean dvbv5_dvb_zap_check_fe_lock ( Dvbv5 *dvbv5 )
 {
 	if ( dvbv5->window  == NULL ) return FALSE;
 	if ( dvbv5->dvb_zap == NULL ) return FALSE;
@@ -589,7 +592,7 @@ static bool dvbv5_dvb_zap_check_fe_lock ( Dvbv5 *dvbv5 )
 	fe_status_t status;
 	dvb_fe_retrieve_stats ( parms, DTV_STATUS, &status );
 
-	bool fe_lock = FALSE;
+	gboolean fe_lock = FALSE;
 	if ( status & FE_HAS_LOCK ) fe_lock = TRUE;
 	dvbv5->fe_lock = fe_lock;
 
@@ -602,7 +605,7 @@ static bool dvbv5_dvb_zap_check_fe_lock ( Dvbv5 *dvbv5 )
 	return TRUE;
 }
 
-void dvbv5_dvb_zap_auto_free ( Dvbv5 *dvbv5 )
+static void dvbv5_dvb_zap_auto_free ( Dvbv5 *dvbv5 )
 {
 	if ( dvbv5->debug ) g_message ( "%s: %s ", __func__, ( dvbv5->dvb_zap ) ? "True" : "False" );
 
@@ -632,7 +635,7 @@ void dvbv5_dvb_zap_auto_free ( Dvbv5 *dvbv5 )
 	}
 }
 
-bool _dvbv5_dvb_zap_init ( const char *channel, Dvbv5 *dvbv5 )
+gboolean _dvbv5_dvb_zap_init ( const char *channel, Dvbv5 *dvbv5 )
 {
 	if ( !g_file_test ( dvbv5->zap_file, G_FILE_TEST_EXISTS ) )
 	{
@@ -697,12 +700,12 @@ bool _dvbv5_dvb_zap_init ( const char *channel, Dvbv5 *dvbv5 )
 		dvbv5->zap->zap_status = TRUE;
 		gtk_widget_set_sensitive ( GTK_WIDGET ( dvbv5->zap->combo_dmx ), FALSE );
 
-		bool sat = FALSE;
+		gboolean sat = FALSE;
 		if ( dvb_fe_is_satellite ( parms->current_sys ) ) sat = TRUE;
 
 		dvbv5->freq_scan = ( sat ) ? freq / 1000 : freq / 1000000;
 
-		g_message ( "%s:: Zap Ok.", __func__ );
+		if ( dvbv5->debug ) g_message ( "%s:: Zap Ok.", __func__ );
 	}
 	else
 	{
@@ -758,9 +761,7 @@ static void dvbv5_set_file_size ( Dvbv5 *dvbv5 )
 	if ( dvbv5->rec_cnt <=  3 ) dvbv5->rec_lr =  TRUE;
 	if ( dvbv5->rec_cnt >= 15 ) dvbv5->rec_lr = FALSE;
 
-	const char *format = "  %s <span foreground=\"#%xf0000\"> ◉ </span>";
-
-	char *markup = g_markup_printf_escaped ( format, str_size, dvbv5->rec_cnt );
+	char *markup = g_markup_printf_escaped ( "  %s <span foreground=\"#%xf0000\"> ◉ </span>", str_size, dvbv5->rec_cnt );
 
 		gtk_label_set_markup ( dvbv5->label_rec, markup );
 
@@ -786,7 +787,7 @@ static void dvbv5_set_status_server ( Dvbv5 *dvbv5 )
 
 static void dvbv5_set_status ( uint32_t freq, Dvbv5 *dvbv5 )
 {
-	bool sat = FALSE;
+	gboolean sat = FALSE;
 	if ( dvb_fe_is_satellite ( dvbv5->dvb_fe->fe_parms->current_sys ) ) sat = TRUE;
 
 	if ( dvbv5->freq_scan > 0 )
@@ -840,7 +841,7 @@ static void dvbv5_dvb_fe_beep ( uint16_t sgl, uint16_t snr, Dvbv5 *dvbv5 )
 	}
 }
 
-static char * dvbv5_dvb_fe_get_stats_layer_str ( struct dvb_v5_fe_parms *parms, uint8_t cmd, const char *name, uint8_t layer, bool debug )
+static char * dvbv5_dvb_fe_get_stats_layer_str ( struct dvb_v5_fe_parms *parms, uint8_t cmd, const char *name, uint8_t layer, gboolean debug )
 {
 	char *ret = NULL;
 
@@ -870,7 +871,7 @@ static char * dvbv5_dvb_fe_get_stats_layer_str ( struct dvb_v5_fe_parms *parms, 
 	return ret;
 }
 
-static float dvbv5_dvb_fe_get_stats_layer_digits ( struct dvb_v5_fe_parms *parms, uint8_t cmd, const char *name, uint8_t layer, bool debug )
+static float dvbv5_dvb_fe_get_stats_layer_digits ( struct dvb_v5_fe_parms *parms, uint8_t cmd, const char *name, uint8_t layer, gboolean debug )
 {
 	float ret = 0;
 
@@ -917,7 +918,7 @@ static uint8_t dvbv5_dvb_fe_get_manual_quality ( struct dvb_v5_fe_parms *parms, 
 	return qual;
 }
 
-static bool dvbv5_dvb_fe_get_stats ( Dvbv5 *dvbv5 )
+static gboolean dvbv5_dvb_fe_get_stats ( Dvbv5 *dvbv5 )
 {
 	struct dvb_v5_fe_parms *parms = dvbv5->dvb_fe->fe_parms;
 
@@ -930,7 +931,7 @@ static bool dvbv5_dvb_fe_get_stats ( Dvbv5 *dvbv5 )
 	}
 
 	uint32_t freq = 0, qual = 0;
-	bool fe_lock = FALSE;
+	gboolean fe_lock = FALSE;
 
 	fe_status_t status;
 	dvb_fe_retrieve_stats ( parms, DTV_STATUS,  &status );
@@ -940,8 +941,6 @@ static bool dvbv5_dvb_fe_get_stats ( Dvbv5 *dvbv5 )
 	if ( status & FE_HAS_LOCK ) fe_lock = TRUE;
 	if ( qual == 0 ) qual = dvbv5_dvb_fe_get_manual_quality ( parms, dvbv5->pids[1] );
 	if ( !fe_lock || !dvbv5->zap->zap_status ) qual = 0;
-
-	// bool decibel_mn = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( dvbv5->toggle_dB ) );
 
 	uint8_t layer = 0;
 	char *sgl_gs = NULL, *snr_gs = NULL;
@@ -990,7 +989,7 @@ static void dvbv5_dvb_fe_auto_free ( Dvbv5 *dvbv5 )
 	}
 }
 
-static bool dvbv5_dvb_fe_show_stats ( Dvbv5 *dvbv5 )
+static gboolean dvbv5_dvb_fe_show_stats ( Dvbv5 *dvbv5 )
 {
 	if ( dvbv5->window == NULL ) return FALSE;
 
@@ -1009,7 +1008,7 @@ static bool dvbv5_dvb_fe_show_stats ( Dvbv5 *dvbv5 )
 			gtk_label_set_text ( dvbv5->label_rec, "" );
 
 			control_button_set_sensitive ( "start", TRUE, dvbv5->control );
-			gtk_widget_set_sensitive ( GTK_WIDGET ( dvbv5->scan->grid ), TRUE );
+			gtk_widget_set_sensitive ( GTK_WIDGET ( dvbv5->scan ), TRUE );
 			gtk_widget_set_sensitive ( GTK_WIDGET ( dvbv5->toggle_fe  ), TRUE );
 			gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON ( dvbv5->toggle_fe ), FALSE );
 		}
@@ -1023,7 +1022,7 @@ static bool dvbv5_dvb_fe_show_stats ( Dvbv5 *dvbv5 )
 	return TRUE;
 }
 
-static bool _dvbv5_dvb_fe_stat_init ( Dvbv5 *dvbv5 )
+static gboolean _dvbv5_dvb_fe_stat_init ( Dvbv5 *dvbv5 )
 {
 	dvbv5_dvb_fe_auto_free ( dvbv5 );
 	dvbv5->dvb_fe = dvb_dev_alloc ();
@@ -1050,7 +1049,7 @@ static bool _dvbv5_dvb_fe_stat_init ( Dvbv5 *dvbv5 )
 	struct dvb_v5_fe_parms *parms = dvbv5->dvb_fe->fe_parms;
 
 	dvbv5->cur_sys = parms->current_sys;
-	if ( parms->info.name ) gtk_label_set_text ( dvbv5->dvb_name, parms->info.name );
+	gtk_label_set_text ( dvbv5->dvb_name, parms->info.name );
 
 	return TRUE;
 }
@@ -1109,7 +1108,7 @@ static void dvbv5_clicked_start ( Dvbv5 *dvbv5 )
 			gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON ( dvbv5->toggle_fe ), TRUE );
 
 		control_button_set_sensitive ( "start", FALSE, dvbv5->control );
-		gtk_widget_set_sensitive ( GTK_WIDGET ( dvbv5->scan->grid ), FALSE );
+		gtk_widget_set_sensitive ( GTK_WIDGET ( dvbv5->scan ), FALSE );
 		gtk_widget_set_sensitive ( GTK_WIDGET ( dvbv5->toggle_fe  ), FALSE );
 	}
 }
@@ -1121,7 +1120,7 @@ static void dvbv5_info ( Dvbv5 *dvbv5 )
 
 static void dvbv5_dark ( G_GNUC_UNUSED Dvbv5 *dvbv5 )
 {
-	bool dark = FALSE;
+	gboolean dark = FALSE;
 	g_object_get ( gtk_settings_get_default(), "gtk-application-prefer-dark-theme", &dark, NULL );
 	g_object_set ( gtk_settings_get_default(), "gtk-application-prefer-dark-theme", !dark, NULL );
 	dvbv5->dark = !dark;
@@ -1152,7 +1151,7 @@ static void dvbv5_button_clicked_handler ( G_GNUC_UNUSED Control *control, const
 
 static void dvbv5_set_fe ( GtkToggleButton *button, Dvbv5 *dvbv5 )
 {
-	bool set_fe = gtk_toggle_button_get_active ( button );
+	gboolean set_fe = gtk_toggle_button_get_active ( button );
 
 	if ( set_fe )
 	{
@@ -1183,11 +1182,7 @@ static GtkBox * dvbv5_create_info ( Dvbv5 *dvbv5 )
 	gtk_widget_set_tooltip_text ( GTK_WIDGET ( dvbv5->toggle_be ), 
 		"Beep 1 - Signal; Beep 2 - Snr\n0-25:  beep 500 Hz\n25-50: beep 1000 Hz\n50-75: beep 2000 Hz\n75-100: beep 3000 Hz" );
 
-	// dvbv5->toggle_dB = (GtkCheckButton *)gtk_check_button_new_with_label ( "dB" );
-	// gtk_widget_set_tooltip_text ( GTK_WIDGET ( dvbv5->toggle_dB ), "Decibel ( Unstable )" );
-
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( dvbv5->label_freq ), FALSE, FALSE, 0 );
-	// gtk_box_pack_end   ( h_box, GTK_WIDGET ( dvbv5->toggle_dB  ), FALSE, FALSE, 0 );
 #ifndef LIGHT
 	gtk_box_pack_end   ( h_box, GTK_WIDGET ( dvbv5->toggle_be  ), FALSE, FALSE, 0 );
 #endif
@@ -1204,7 +1199,7 @@ static GtkBox * dvbv5_create_control_box ( Dvbv5 *dvbv5 )
 	gtk_box_pack_start ( v_box, GTK_WIDGET ( dvbv5_create_info ( dvbv5 ) ), FALSE, FALSE, 0 );
 
 	dvbv5->level = level_new ();
-	gtk_box_pack_start ( v_box, GTK_WIDGET ( dvbv5->level->v_box ), FALSE, FALSE, 5 );
+	gtk_box_pack_start ( v_box, GTK_WIDGET ( dvbv5->level ), FALSE, FALSE, 5 );
 
 	dvbv5->control = control_new ( dvbv5->icon_size );
 	g_signal_connect ( dvbv5->control, "button-clicked", G_CALLBACK ( dvbv5_button_clicked_handler ), dvbv5 );
@@ -1248,17 +1243,21 @@ static GtkHeaderBar * dvbv5_header_bar ( Dvbv5 *dvbv5 )
 	GtkBox *vbox = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 5 );
 	gtk_box_set_spacing ( vbox, 5 );
 
-	struct Data { const char *name; void ( *fp ); } data_n[] =
+	struct Data { const char *icon_u; const char *name; void ( *f )(GtkButton *, Dvbv5 *); } data_n[] =
 	{
-		{ "dvb-dark",  dvbv5_header_bar_menu_dark  },
-		{ "dvb-info",  dvbv5_header_bar_menu_about },
-		{ "dvb-quit",  dvbv5_header_bar_menu_quit  }
+		{ "⏾", "dvb-dark",  dvbv5_header_bar_menu_dark  },
+		{ "🛈", "dvb-info",  dvbv5_header_bar_menu_about },
+		{ "⏻", "dvb-quit",  dvbv5_header_bar_menu_quit  }
 	};
 
 	uint8_t c = 0; for ( c = 0; c < G_N_ELEMENTS ( data_n ); c++ )
 	{
+#ifndef LIGHT
 		GtkButton *button = (GtkButton *)gtk_button_new_from_icon_name ( data_n[c].name, GTK_ICON_SIZE_MENU );
-		g_signal_connect ( button, "clicked", G_CALLBACK ( data_n[c].fp ), dvbv5 );
+#else
+		GtkButton *button = (GtkButton *)gtk_button_new_with_label ( data_n[c].icon_u );
+#endif
+		g_signal_connect ( button, "clicked", G_CALLBACK ( data_n[c].f ), dvbv5 );
 		gtk_widget_show ( GTK_WIDGET ( button ) );
 		gtk_box_pack_start ( vbox, GTK_WIDGET ( button ), FALSE, FALSE, 0 );
 	}
@@ -1285,10 +1284,6 @@ static void dvbv5_window_quit ( G_GNUC_UNUSED GtkWindow *window, Dvbv5 *dvbv5 )
 	if ( dvbv5->record ) record_destroy ( dvbv5->record );
 	if ( dvbv5->server ) tcpserver_destroy ( dvbv5->server );
 #endif
-
-	zap_destroy ( dvbv5->zap );
-	scan_destroy ( dvbv5->scan );
-	level_destroy ( dvbv5->level );
 
 	dvbv5_dvb_scan_auto_free ( dvbv5 );
 	dvbv5_dvb_zap_auto_free ( dvbv5 );
@@ -1345,8 +1340,8 @@ static void dvbv5_new_window ( GApplication *app )
 	dvbv5->notebook = (GtkNotebook *)gtk_notebook_new ();
 	gtk_notebook_set_scrollable ( dvbv5->notebook, TRUE );
 
-	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->scan->grid ), gtk_label_new ( "Scan" ) );
-	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->zap->v_box ), gtk_label_new ( "Zap"  ) );
+	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->scan ), gtk_label_new ( "Scan" ) );
+	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->zap  ), gtk_label_new ( "Zap"  ) );
 #ifndef LIGHT
 	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->v_box_pref ), gtk_label_new ( "⚒"  ) );
 #endif
@@ -1390,11 +1385,6 @@ static void dvbv5_init ( Dvbv5 *dvbv5 )
 	dvbv5->pmt_fd = NULL;
 	dvbv5->video_fd = NULL;
 
-	dvbv5->zap = NULL;
-	dvbv5->scan = NULL;
-	dvbv5->level = NULL;
-	dvbv5->control = NULL;
-
 	dvbv5->cookie  = 0;
 	dvbv5->cur_sys = 0;
 	dvbv5->fe_lock = FALSE;
@@ -1435,7 +1425,7 @@ static Dvbv5 * dvbv5_new (void)
 	return g_object_new ( DVBV5_TYPE_APPLICATION, /*"application-id", "org.gnome.dvbv5-gtk",*/ "flags", G_APPLICATION_FLAGS_NONE, NULL );
 }
 
-static void dvbv5_set_debug ()
+static void dvbv5_set_debug (void)
 {
 	const char *debug = g_getenv ( "DVB_DEBUG" );
 

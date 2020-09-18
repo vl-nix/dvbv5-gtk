@@ -12,21 +12,11 @@
 
 #include <gtk/gtk.h>
 
-typedef gboolean bool;
-
-typedef struct _Level Level;
-
-struct _Level
-{
-	GtkBox *v_box;
-
-	GtkLabel *sgn_snr;
-	GtkProgressBar *bar_sgn;
-	GtkProgressBar *bar_snr;
-};
+#define LEVEL_TYPE_BOX                  level_get_type ()
+G_DECLARE_FINAL_TYPE ( Level, level, LEVEL, BOX, GtkBox )
 
 Level * level_new (void);
-void level_destroy ( Level *level );
-void level_set_sgn_snr ( uint8_t qual, char *sgl, char *snr, float sgl_gd, float snr_gd, bool fe_lock, Level *level );
+
+void level_set_sgn_snr ( uint8_t qual, char *sgl, char *snr, float sgl_gd, float snr_gd, gboolean fe_lock, Level *level );
 
 #endif

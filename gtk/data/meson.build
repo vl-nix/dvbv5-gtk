@@ -1,4 +1,4 @@
-exec_path = bindir + '/' + project_name
+exec_path = bindir + '/' + meson.project_name()
 
 desktop_conf = configuration_data()
 
@@ -10,14 +10,14 @@ set_desktop = [
   ['TERMINAL', 'false'],
   ['TYPE', 'Application'],
   ['CATEGORIES', 'GTK;GNOME;AudioVideo;Player;Video;'],
-  ['VERSION', project_version]
+  ['VERSION', meson.project_version()]
 ]
 
 foreach props: set_desktop
   desktop_conf.set(props[0], props[1])
 endforeach
 
-desktop = project_name + '.desktop'
+desktop = meson.project_name() + '.desktop'
 
 configure_file(
   input: 'desktop',

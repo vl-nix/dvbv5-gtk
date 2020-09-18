@@ -70,7 +70,7 @@ static void tcpserver_msg_err ( G_GNUC_UNUSED GstBus *bus, GstMessage *msg, TcpS
 	g_free ( dbg );
 }
 
-static bool tcpserver_init ( TcpServer *tcpserver )
+static gboolean tcpserver_init ( TcpServer *tcpserver )
 {
 	tcpserver->pipeline    = gst_pipeline_new ( "pipeline-server" );
 	tcpserver->file_src    = gst_element_factory_make ( "filesrc",       NULL );
@@ -104,7 +104,7 @@ void tcpserver_destroy ( TcpServer *tcpserver )
 	free ( tcpserver );
 }
 
-TcpServer * tcpserver_new ()
+TcpServer * tcpserver_new (void)
 {
 	TcpServer *tcpserver = g_new0 ( TcpServer, 1 );
 
@@ -147,7 +147,7 @@ static void record_msg_err ( G_GNUC_UNUSED GstBus *bus, GstMessage *msg, Record 
 	g_free ( dbg );
 }
 
-static bool record_init ( Record *record )
+static gboolean record_init ( Record *record )
 {
 	record->pipeline  = gst_pipeline_new ( "pipeline-record" );
 	record->file_src  = gst_element_factory_make ( "filesrc",  NULL );
@@ -181,7 +181,7 @@ void record_destroy ( Record *record )
 	free ( record );
 }
 
-Record * record_new ()
+Record * record_new (void)
 {
 	Record *record = g_new0 ( Record, 1 );
 
@@ -194,11 +194,11 @@ Record * record_new ()
 
 static void player_set_next_track ( const char *name_n, const char *name_c, Player *player )
 {
-	bool audio = FALSE;
+	gboolean audio = FALSE;
 	if ( g_str_has_suffix ( name_n, "audio" ) )
 	{
 		audio = TRUE;
-		bool mute = FALSE;
+		gboolean mute = FALSE;
 		g_object_get ( player->playbin, "mute", &mute, NULL );
 		if ( mute ) { g_object_set ( player->playbin, "mute",  !mute, NULL ); return; }
 	}
@@ -313,7 +313,7 @@ void player_play  ( Player *player, const char *uri )
 	gst_element_set_state ( player->playbin, GST_STATE_PLAYING );
 }
 
-static bool player_init ( bool add_time, Player *player )
+static gboolean player_init ( gboolean add_time, Player *player )
 {
 	player->playbin = gst_element_factory_make ( "playbin", NULL );
 
@@ -376,7 +376,7 @@ void player_destroy ( Player *player )
 	free ( player );
 }
 
-Player * player_new ( bool add_time )
+Player * player_new ( gboolean add_time )
 {
 	Player *player = g_new0 ( Player, 1 );
 

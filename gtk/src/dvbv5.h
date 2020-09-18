@@ -34,13 +34,13 @@
 
 #define MAX_AUDIO 32
 
-#define DVBV5_TYPE_APPLICATION             (dvbv5_get_type ())
-#define DVBV5_APPLICATION(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), DVBV5_TYPE_APPLICATION, Dvbv5))
-#define DVBV5_APPLICATION_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass),  DVBV5_TYPE_APPLICATION, Dvbv5Class))
-#define DVBV5_IS_APPLICATION(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), DVBV5_TYPE_APPLICATION))
-#define DVBV5_IS_APPLICATION_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass),  DVBV5_TYPE_APPLICATION))
+#define DVBV5_TYPE_APPLICATION    dvbv5_get_type ()
+#define DVBV5_APPLICATION(obj)    (G_TYPE_CHECK_INSTANCE_CAST ((obj), DVBV5_TYPE_APPLICATION, Dvbv5))
+#define DVBV5_IS_APPLICATION(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), DVBV5_TYPE_APPLICATION))
+// #define DVBV5_APPLICATION_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass),  DVBV5_TYPE_APPLICATION, Dvbv5Class))
+// #define DVBV5_IS_APPLICATION_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass),  DVBV5_TYPE_APPLICATION))
+// #define DVBV5_APPLICATION_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS((obj),   DVBV5_TYPE_APPLICATION, Dvbv5Class))
 
-typedef gboolean bool;
 typedef struct _Dvbv5 Dvbv5;
 typedef struct _Dvbv5Class Dvbv5Class;
 
@@ -59,12 +59,12 @@ struct _Dvbv5
 	GtkLabel *dvb_name, *label_freq, *label_rec;
 	GtkEntry *entry_host, *entry_port;
 	GtkEntry *entry_rec_dir, *entry_theme;
-	GtkCheckButton *toggle_fe, *toggle_be, *toggle_dB;
+	GtkCheckButton *toggle_fe, *toggle_be;
 	GtkPopover *popover;
 
 	GMutex mutex;
 	GThread *thread;
-	bool thread_stop, thread_save, stat_stop;
+	gboolean thread_stop, thread_save, stat_stop;
 
 	Zap *zap;
 	Scan *scan;
@@ -88,21 +88,21 @@ struct _Dvbv5
 	uint16_t apids[MAX_AUDIO], pids[6]; // 0 - sid, 1 - vpid, 2 - apid, 3 - apid_len, 4 - sid found, 5 - vpid found
 	uint32_t freq_scan, progs_scan, cookie;
 
-	bool fe_lock, rec_lr, debug;
+	gboolean fe_lock, rec_lr, debug;
 
 	GDBusConnection *connect;
 
 	time_t t_fe_start;
 
 	GSettings *settings;
-	bool dark;
+	gboolean dark;
 	uint8_t icon_size, opacity;
 };
 
 GType dvbv5_get_type (void);
 
 void dvbv5_get_dvb_info ( Dvbv5 *dvbv5 );
-bool _dvbv5_dvb_zap_init ( const char *channel, Dvbv5 *dvbv5 );
+gboolean _dvbv5_dvb_zap_init ( const char *channel, Dvbv5 *dvbv5 );
 void dvbv5_message_dialog ( const char *error, const char *file_or_info, GtkMessageType mesg_type, GtkWindow *window );
 
 #endif // GTK_TYPE_APPLICATION

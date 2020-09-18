@@ -10,6 +10,8 @@
 #ifndef PREF_H
 #define PREF_H
 
+#include "dvbv5.h"
+
 GtkBox * create_pref ( Dvbv5 *dvbv5 );
 
 void set_pref  ( Dvbv5 *dvbv5 );

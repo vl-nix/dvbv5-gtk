@@ -12,13 +12,21 @@
 
 #include <gtk/gtk.h>
 
-typedef gboolean bool;
+#define SCAN_TYPE_GRID    scan_get_type ()
+#define SCAN_GRID(obj)    (G_TYPE_CHECK_INSTANCE_CAST ((obj), SCAN_TYPE_GRID, Scan))
+#define SCAN_IS_GRID(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SCAN_TYPE_GRID))
 
 typedef struct _Scan Scan;
+typedef struct _ScanClass ScanClass;
+
+struct _ScanClass
+{
+	GtkGridClass parent_class;
+};
 
 struct _Scan
 {
-	GtkGrid *grid;
+	GtkGrid parent_instance;
 
 	GtkSpinButton *spinbutton[6];
 	GtkCheckButton *checkbutton[4];
@@ -33,7 +41,8 @@ struct _Scan
 	int8_t lna, lnb, sat_num;
 };
 
+GType scan_get_type (void);
+
 Scan * scan_new (void);
-void scan_destroy ( Scan *scan );
 
 #endif // SCAN_H

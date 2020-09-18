@@ -12,17 +12,15 @@
 
 #include <gtk/gtk.h>
 
-typedef gboolean bool;
-
 #define NUM_BUTTONS 4
 
-#define CONTROL_TYPE_BOX                  (control_get_type ())
+#define CONTROL_TYPE_BOX                    control_get_type ()
 G_DECLARE_FINAL_TYPE ( Control, control, CONTROL, BOX, GtkBox )
 
 Control * control_new ( uint8_t icon_size );
 
 void control_resize_icon ( uint8_t icon_size, Control *control );
-void control_button_set_sensitive ( const char *name, bool set, Control *control );
+void control_button_set_sensitive ( const char *name, gboolean set, Control *control );
 GtkButton * control_create_button ( GtkBox *h_box, const char *name, const char *icon_u, uint8_t icon_size );
 
 #endif // CONTROL_H

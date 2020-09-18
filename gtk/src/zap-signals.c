@@ -7,10 +7,10 @@
 * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
-#include "dvbv5.h"
+#include "zap-signals.h"
 #include "file.h"
 
-static bool zap_signal_check_fe_lock ( Dvbv5 *dvbv5 )
+static gboolean zap_signal_check_fe_lock ( Dvbv5 *dvbv5 )
 {
 	if ( dvbv5->dvb_zap && !dvbv5->fe_lock )
 	{
@@ -24,7 +24,7 @@ static bool zap_signal_check_fe_lock ( Dvbv5 *dvbv5 )
 
 #ifndef LIGHT
 /* Returns a newly-allocated string holding the result. Free with free() */
-static char * zap_signal_time_to_str ()
+static char * zap_signal_time_to_str (void)
 {
 	GDateTime *date = g_date_time_new_now_local ();
 
@@ -35,7 +35,7 @@ static char * zap_signal_time_to_str ()
 	return str_time;
 }
 
-static bool zap_signal_check_dmx_out ( Dvbv5 *dvbv5 )
+static gboolean zap_signal_check_dmx_out ( Dvbv5 *dvbv5 )
 {
 	g_autofree char *type_dmx = gtk_combo_box_text_get_active_text ( dvbv5->zap->combo_dmx );
 
@@ -57,7 +57,7 @@ static void zap_signal_set_sensitive ( Zap *zap)
 	gtk_widget_set_sensitive ( GTK_WIDGET ( zap->toggled_tmo ), TRUE );
 }
 
-static bool zap_signal_check_all ( Dvbv5 *dvbv5 )
+static gboolean zap_signal_check_all ( Dvbv5 *dvbv5 )
 {
 	if ( !dvbv5->zap->zap_status ) { g_message ( "Zap?" ); return FALSE; }
 	if ( !zap_signal_check_fe_lock ( dvbv5 ) ) return FALSE;
@@ -66,7 +66,7 @@ static bool zap_signal_check_all ( Dvbv5 *dvbv5 )
 	return TRUE;
 }
 
-static bool zap_signal_check_stream ( Dvbv5 *dvbv5 )
+static gboolean zap_signal_check_stream ( Dvbv5 *dvbv5 )
 {
 	if ( dvbv5->window == NULL ) return FALSE;
 
@@ -87,7 +87,7 @@ static void zap_signal_toggled_stream ( GtkToggleButton *button, Dvbv5 *dvbv5 )
 
 	if ( !zap_signal_check_all ( dvbv5 ) ) return;
 
-	bool server = gtk_toggle_button_get_active ( button );
+	gboolean server = gtk_toggle_button_get_active ( button );
 
 	if ( server )
 	{
@@ -177,7 +177,7 @@ static void zap_preview_set_uninhibit ( Dvbv5 *dvbv5 )
 	dvbv5->cookie = 0;
 }
 
-static bool zap_signal_check_preview ( Dvbv5 *dvbv5 )
+static gboolean zap_signal_check_preview ( Dvbv5 *dvbv5 )
 {
 	if ( dvbv5->window == NULL ) return FALSE;
 
@@ -200,7 +200,7 @@ static void zap_signal_toggled_preview ( GtkToggleButton *button, Dvbv5 *dvbv5 )
 
 	if ( !zap_signal_check_all ( dvbv5 ) ) return;
 
-	bool preview = gtk_toggle_button_get_active ( button );
+	gboolean preview = gtk_toggle_button_get_active ( button );
 
 	if ( preview )
 	{
@@ -229,13 +229,13 @@ static void zap_signal_toggled_preview ( GtkToggleButton *button, Dvbv5 *dvbv5 )
 static void zap_signal_toggled_timeov ( GtkToggleButton *button, Dvbv5 *dvbv5 )
 {
 	// On / Off: Preview -> Time stamp is displayed
-	bool status = gtk_toggle_button_get_active ( button );
+	gboolean status = gtk_toggle_button_get_active ( button );
 
 	if ( dvbv5->player ) player_destroy ( dvbv5->player );
 	dvbv5->player = player_new ( status );
 }
 
-static bool zap_signal_check_record ( Dvbv5 *dvbv5 )
+static gboolean zap_signal_check_record ( Dvbv5 *dvbv5 )
 {
 	if ( dvbv5->window == NULL ) return FALSE;
 
@@ -256,7 +256,7 @@ static void zap_signal_toggled_record ( GtkToggleButton *button, Dvbv5 *dvbv5 )
 
 	if ( !zap_signal_check_all ( dvbv5 ) ) return;
 
-	bool record = gtk_toggle_button_get_active ( button );
+	gboolean record = gtk_toggle_button_get_active ( button );
 
 	if ( record )
 	{
@@ -329,7 +329,7 @@ static void zap_signal_trw_row_act ( GtkTreeView *tree_view, GtkTreePath *path, 
 	}
 }
 
-bool zap_signal_parse_dvb_file ( const char *file, Dvbv5 *dvbv5 )
+gboolean zap_signal_parse_dvb_file ( const char *file, Dvbv5 *dvbv5 )
 {
 	if ( file == NULL ) return FALSE;
 	if ( !g_file_test ( file, G_FILE_TEST_EXISTS ) ) return FALSE;

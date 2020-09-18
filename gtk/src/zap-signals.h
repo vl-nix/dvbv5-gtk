@@ -10,7 +10,9 @@
 #ifndef ZAP_SIGNALS_H
 #define ZAP_SIGNALS_H
 
+#include "dvbv5.h"
+
 void zap_signals ( const OutDemux out_demux_n[], uint8_t n_elm, Dvbv5 *dvbv5 );
-bool zap_signal_parse_dvb_file ( const char *file, Dvbv5 *dvbv5 );
+gboolean zap_signal_parse_dvb_file ( const char *file, Dvbv5 *dvbv5 );
 
 #endif // ZAP_SIGNALS_H

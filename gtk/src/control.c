@@ -25,7 +25,7 @@ static const char *b_n[NUM_BUTTONS][3] =
 	/*{ "dark",  "dvb-dark",  "⏾" }, { "info", "dvb-info", "🛈" },*/ { "quit", "dvb-quit", "⏻" }
 };
 
-void control_button_set_sensitive ( const char *name, bool set, Control *control )
+void control_button_set_sensitive ( const char *name, gboolean set, Control *control )
 {
 	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
 	{
@@ -33,9 +33,9 @@ void control_button_set_sensitive ( const char *name, bool set, Control *control
 	}
 }
 
-static bool control_check_icon_theme ( const char *name_icon )
+static gboolean control_check_icon_theme ( const char *name_icon )
 {
-	bool ret = FALSE;
+	gboolean ret = FALSE;
 
 	char **icons = g_resources_enumerate_children ( "/dvbv5", G_RESOURCE_LOOKUP_FLAGS_NONE, NULL );
 

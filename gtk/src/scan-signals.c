@@ -7,7 +7,7 @@
 * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
-#include "dvbv5.h"
+#include "scan-signals.h"
 #include "file.h"
 #include "lnb.h"
 
@@ -131,7 +131,7 @@ void scan_signals ( Dvbv5 *dvbv5 )
 	g_signal_connect ( dvbv5->scan->combo_lna,  "changed", G_CALLBACK ( scan_signal_set_lna ), dvbv5 );
 	g_signal_connect ( dvbv5->scan->button_lnb, "clicked", G_CALLBACK ( scan_signal_clicked_button_lnb ), dvbv5 );
 
-	gtk_drag_dest_set ( GTK_WIDGET ( dvbv5->scan->grid ), GTK_DEST_DEFAULT_ALL, NULL, 0, GDK_ACTION_COPY );
-	gtk_drag_dest_add_uri_targets  ( GTK_WIDGET ( dvbv5->scan->grid ) );
-	g_signal_connect ( dvbv5->scan->grid, "drag-data-received", G_CALLBACK ( scan_signal_drag_in ), dvbv5 );
+	gtk_drag_dest_set ( GTK_WIDGET ( dvbv5->scan ), GTK_DEST_DEFAULT_ALL, NULL, 0, GDK_ACTION_COPY );
+	gtk_drag_dest_add_uri_targets  ( GTK_WIDGET ( dvbv5->scan ) );
+	g_signal_connect ( dvbv5->scan, "drag-data-received", G_CALLBACK ( scan_signal_drag_in ), dvbv5 );
 }

@@ -7,7 +7,7 @@
 * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
-#include "dvbv5.h"
+#include "pref.h"
 #include "file.h"
 #include "zap-signals.h"
 
@@ -58,7 +58,7 @@ static void pref_opacity_win ( GtkRange *range, Dvbv5 *dvbv5 )
 	gtk_widget_set_opacity ( GTK_WIDGET ( dvbv5->window ), (gtk_range_get_value ( range ) / 100) );
 }
 
-static GtkScale * pref_create_scale ( const char *info, uint8_t val, uint8_t min, uint8_t max, void (*f)(), Dvbv5 *dvbv5 )
+static GtkScale * pref_create_scale ( const char *info, uint8_t val, uint8_t min, uint8_t max, void (*f)(GtkRange *, Dvbv5 *), Dvbv5 *dvbv5 )
 {
 	GtkScale *scale = (GtkScale *)gtk_scale_new_with_range ( GTK_ORIENTATION_HORIZONTAL, min, max, 1 );
 	// gtk_scale_set_draw_value ( scale, 0 );

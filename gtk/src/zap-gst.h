@@ -7,7 +7,6 @@
 * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
-
 #ifndef SCAN_GST_H
 #define SCAN_GST_H
 
@@ -15,8 +14,6 @@
 
 #include <gst/gst.h>
 #include <stdint.h>
-
-typedef gboolean bool;
 
 typedef struct _TcpServer TcpServer;
 
@@ -27,7 +24,7 @@ struct _TcpServer
 	GstElement *server_sink;
 };
 
-TcpServer * tcpserver_new ();
+TcpServer * tcpserver_new (void);
 void tcpserver_destroy ( TcpServer *tcpserver );
 
 void tcpserver_stop   ( TcpServer *tcpserver );
@@ -45,7 +42,7 @@ struct _Record
 	GstElement *file_sink;
 };
 
-Record * record_new ();
+Record * record_new (void);
 void record_destroy ( Record *record );
 
 void record_stop   ( Record *record );
@@ -60,7 +57,7 @@ struct _Player
 	GstElement *playbin;
 };
 
-Player * player_new ( bool add_time );
+Player * player_new ( gboolean add_time );
 void player_destroy ( Player *player );
 
 void player_stop  ( Player *player );

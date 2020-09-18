@@ -17,6 +17,8 @@ enum io_file
 	OUT_F
 };
 
+G_DEFINE_TYPE ( Scan, scan, GTK_TYPE_GRID )
+
 static GtkLabel * scan_create_label ( const char *text )
 {
 	GtkLabel *label = (GtkLabel *)gtk_label_new ( text );
@@ -112,9 +114,9 @@ static GtkBox * scan_set_initial_output_file ( const char *file, uint8_t num, Sc
 	return v_box;
 }
 
-static GtkGrid * scan_props_device ( Scan *scan )
+static void scan_create ( Scan *scan )
 {
-	GtkGrid *grid = (GtkGrid *)gtk_grid_new();
+	GtkGrid *grid = GTK_GRID ( scan );
 	gtk_grid_set_row_homogeneous    ( GTK_GRID ( grid ), FALSE );
 	gtk_grid_set_column_homogeneous ( GTK_GRID ( grid ), FALSE );
 	gtk_grid_set_row_spacing ( grid, 5 );
@@ -183,8 +185,6 @@ static GtkGrid * scan_props_device ( Scan *scan )
 
 	gtk_grid_attach ( GTK_GRID ( grid ), GTK_WIDGET ( scan_create_combo_box_format ( INT_F, scan ) ), 0, d,   2, 1 );
 	gtk_grid_attach ( GTK_GRID ( grid ), GTK_WIDGET ( scan_create_combo_box_format ( OUT_F, scan ) ), 2, d++, 2, 1 );
-
-	return grid;
 }
 
 static void scan_init ( Scan *scan )
@@ -204,19 +204,21 @@ static void scan_init ( Scan *scan )
 	scan->sat_num = -1;
 	scan->diseqc_wait = 0;
 
-	scan->grid = scan_props_device ( scan );
+	scan_create ( scan );
 }
 
-void scan_destroy ( Scan *scan )
+static void scan_finalize ( GObject *object )
 {
-	free ( scan );
+	G_OBJECT_CLASS (scan_parent_class)->finalize (object);
 }
 
-Scan * scan_new (void)
+static void scan_class_init ( ScanClass *class )
 {
-	Scan *scan = g_new0 ( Scan, 1 );
-
-	scan_init ( scan );
-
-	return scan;
+	G_OBJECT_CLASS (class)->finalize = scan_finalize;
 }
+
+Scan * scan_new ()
+{
+	return g_object_new ( SCAN_TYPE_GRID, NULL );
+}
+
