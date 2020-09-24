@@ -163,7 +163,7 @@ static void zap_class_init ( ZapClass *class )
 	G_OBJECT_CLASS (class)->finalize = zap_finalize;
 }
 
-Zap * zap_new ()
+Zap * zap_new (void)
 {
 	return g_object_new ( ZAP_TYPE_BOX, NULL );
 }

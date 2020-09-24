@@ -217,7 +217,7 @@ static void scan_class_init ( ScanClass *class )
 	G_OBJECT_CLASS (class)->finalize = scan_finalize;
 }
 
-Scan * scan_new ()
+Scan * scan_new (void)
 {
 	return g_object_new ( SCAN_TYPE_GRID, NULL );
 }

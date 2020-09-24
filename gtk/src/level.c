@@ -70,7 +70,7 @@ static void level_class_init ( LevelClass *class )
 	G_OBJECT_CLASS (class)->finalize = level_finalize;
 }
 
-Level * level_new ()
+Level * level_new (void)
 {
 	return g_object_new ( LEVEL_TYPE_BOX, NULL );
 }

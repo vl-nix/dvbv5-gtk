@@ -1,4 +1,4 @@
-project('dvbv5-gtk', 'c', version: '1.20.40')
+project('dvbv5-gtk', 'c', version: '1.20.50')
 
 bindir = join_paths(get_option('prefix'), get_option('bindir'))
 libdir = join_paths(get_option('prefix'), get_option('libdir'))

@@ -302,8 +302,10 @@ static gboolean _dvbv5_dvb_scan_init ( Dvbv5 *dvbv5 )
 	dvbv5->scan->other_nit  = dvbv5_get_val_togglebutton ( dvbv5->scan->checkbutton[3], dvbv5->debug );
 
 	dvbv5->scan->time_mult   = dvbv5_get_val_spinbutton ( dvbv5->scan->spinbutton[3], dvbv5->debug );
-	dvbv5->scan->sat_num     = dvbv5_get_val_spinbutton ( dvbv5->scan->spinbutton[4], dvbv5->debug );
 	dvbv5->scan->diseqc_wait = dvbv5_get_val_spinbutton ( dvbv5->scan->spinbutton[5], dvbv5->debug );
+
+	// dvbv5->scan->sat_num     = dvbv5_get_val_spinbutton ( dvbv5->scan->spinbutton[4], dvbv5->debug );
+	dvbv5->scan->sat_num = gtk_spin_button_get_value_as_int ( dvbv5->scan->spinbutton[4] );
 
 	dvb_dev_set_log ( dvbv5->dvb_scan, 0, NULL );
 	dvb_dev_find ( dvbv5->dvb_scan, NULL, NULL );
@@ -909,7 +911,7 @@ static uint8_t dvbv5_dvb_fe_get_manual_quality ( struct dvb_v5_fe_parms *parms, 
 
 	// For the highest accuracy, you need to determine the stream rate ( set minimum - SD ):
 	uint32_t allow_bits_error_good = 200, allow_bits_error_ok = 2000;
-	if ( !vpid ) allow_bits_error_good = 10, allow_bits_error_ok = 100; // Radio
+	if ( !vpid ) { allow_bits_error_good = 10; allow_bits_error_ok = 100; } // Radio
 
 	if ( ber >  allow_bits_error_ok   ) qual = 1; // Poor ( BER > 1e−3: 1 error per 1000  bits )
 	if ( ber <= allow_bits_error_ok   ) qual = 2; // 1e-4 > Ok < 1e-3 ( allow-bits-error )
