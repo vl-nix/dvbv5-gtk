@@ -38,7 +38,7 @@ static GtkSpinButton * scan_create_spinbutton ( int16_t min, int16_t max, uint8_
 	return spinbutton;
 }
 
-static GtkCheckButton * scan_create_checkbutton ( uint8_t value, uint8_t num, const char *name, Scan *scan )
+static GtkCheckButton * scan_create_checkbutton ( int16_t value, uint8_t num, const char *name, Scan *scan )
 {
 	GtkCheckButton *checkbutton = (GtkCheckButton *)gtk_check_button_new ();
 	gtk_widget_set_name ( GTK_WIDGET ( checkbutton ), name );
@@ -118,7 +118,7 @@ static void scan_create ( Scan *scan )
 {
 	GtkGrid *grid = GTK_GRID ( scan );
 	gtk_grid_set_row_homogeneous    ( GTK_GRID ( grid ), FALSE );
-	gtk_grid_set_column_homogeneous ( GTK_GRID ( grid ), FALSE );
+	gtk_grid_set_column_homogeneous ( GTK_GRID ( grid ), TRUE );
 	gtk_grid_set_row_spacing ( grid, 5 );
 	gtk_grid_set_column_spacing ( grid, 10 );
 
@@ -129,12 +129,12 @@ static void scan_create ( Scan *scan )
 
 	struct DataDevice { const char *text; int16_t value; const char *text_2; int16_t value_2; } data_n[] =
 	{
-		{ "Adapter",    scan->adapter,   "Frontend",   	 scan->frontend 	},
-		{ "Demux",   	scan->demux, 	 "Timeout",   	 scan->time_mult 	},
-		{ "Freqs-only", scan->new_freqs, "Get frontend", scan->get_detect 	},
-		{ "Nit",   	scan->get_nit,   "Other nit",    scan->other_nit 	},
-		{ "LNB", 	scan->lnb, 	 "DISEqC",   	 scan->sat_num          },
-		{ "LNA",   	scan->lna,   	 "Wait DISEqC",  scan->diseqc_wait	}
+		{ "Adapter",     0, "Frontend",     0 	},
+		{ "Demux",   	 0, "Timeout",      2 	},
+		{ "Freqs-only",  0, "Get frontend", 0 	},
+		{ "Nit",   	 0, "Other nit",    0 	},
+		{ "LNB", 	-1, "DISEqC",      -1   },
+		{ "LNA",   	-1, "Wait DISEqC",  0	}
 	};
 
 	uint8_t d = 0, spin_num = 0, toggle_num = 0;
@@ -189,21 +189,6 @@ static void scan_create ( Scan *scan )
 
 static void scan_init ( Scan *scan )
 {
-	scan->adapter   = 0;
-	scan->frontend  = 0;
-	scan->demux     = 0;
-	scan->time_mult = 2;
-
-	scan->new_freqs  = 0;
-	scan->get_detect = 0;
-	scan->get_nit    = 0;
-	scan->other_nit  = 0;
-
-	scan->lna = -1;
-	scan->lnb = -1;
-	scan->sat_num = -1;
-	scan->diseqc_wait = 0;
-
 	scan_create ( scan );
 }
 
@@ -217,7 +202,7 @@ static void scan_class_init ( ScanClass *class )
 	G_OBJECT_CLASS (class)->finalize = scan_finalize;
 }
 
-Scan * scan_new (void)
+Scan * scan_new ( void )
 {
 	return g_object_new ( SCAN_TYPE_GRID, NULL );
 }

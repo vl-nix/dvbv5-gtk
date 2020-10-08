@@ -10,29 +10,19 @@
 #ifndef DVBV5_H
 #define DVBV5_H
 
+#include "dvb.h"
+
 #include "zap.h"
 #include "scan.h"
 #include "level.h"
 #include "control.h"
 
 #ifndef LIGHT
+  #include "settings.h"
   #include "zap-gst.h"
 #endif
 
-#include <linux/dvb/dmx.h>
-#include <libdvbv5/dvb-dev.h>
-#include <libdvbv5/dvb-scan.h>
-#include <libdvbv5/dvb-file.h>
-#include <libdvbv5/dvb-demux.h>
-#include <libdvbv5/dvb-v5-std.h>
-
 #include <gtk/gtk.h>
-
-#ifndef LIGHT
-  #include <gst/gst.h>
-#endif
-
-#define MAX_AUDIO 32
 
 #define DVBV5_TYPE_APPLICATION    dvbv5_get_type ()
 #define DVBV5_APPLICATION(obj)    (G_TYPE_CHECK_INSTANCE_CAST ((obj), DVBV5_TYPE_APPLICATION, Dvbv5))
@@ -54,55 +44,46 @@ struct _Dvbv5
 	GtkApplication parent_instance;
 
 	GtkWindow *window;
-	GtkNotebook *notebook;
-	GtkBox *v_box_pref;
-	GtkLabel *dvb_name, *label_freq, *label_rec;
-	GtkEntry *entry_host, *entry_port;
-	GtkEntry *entry_rec_dir, *entry_theme;
-	GtkCheckButton *toggle_fe, *toggle_be;
-	GtkPopover *popover;
 
-	GMutex mutex;
-	GThread *thread;
-	gboolean thread_stop, thread_save, stat_stop;
+	GtkPopover *popover;
+	GtkNotebook *notebook;
+	GtkCheckButton *toggle_fe;
+
+	GtkLabel *dvb_name;
+	GtkLabel *dvb_netw;
+	GtkLabel *label_freq;
+	GtkLabel *label_status;
 
 	Zap *zap;
 	Scan *scan;
 	Level *level;
 	Control *control;
 
+	Dvb *dvb;
+
 #ifndef LIGHT
 	Player *player;
 	Record *record;
 	TcpServer *server;
+
+	Settings *setting;
 #endif
 
-	struct dvb_device *dvb_scan, *dvb_fe, *dvb_zap;
-	struct dvb_open_descriptor *pat_fd, *pmt_fd, *video_fd, *audio_fds[MAX_AUDIO];
+	gboolean debug;
 
-	char *demux_dev;
-	char *input_file, *output_file, *zap_file;
-	enum dvb_file_formats input_format, output_format;
-
-	uint8_t cur_sys, rec_cnt;
-	uint16_t apids[MAX_AUDIO], pids[6]; // 0 - sid, 1 - vpid, 2 - apid, 3 - apid_len, 4 - sid found, 5 - vpid found
-	uint32_t freq_scan, progs_scan, cookie;
-
-	gboolean fe_lock, rec_lr, debug;
-
-	GDBusConnection *connect;
-
-	time_t t_fe_start;
-
-	GSettings *settings;
-	gboolean dark;
-	uint8_t icon_size, opacity;
+	time_t t_dmx_start;
 };
 
-GType dvbv5_get_type (void);
+GType dvbv5_get_type ( void );
 
-void dvbv5_get_dvb_info ( Dvbv5 *dvbv5 );
-gboolean _dvbv5_dvb_zap_init ( const char *channel, Dvbv5 *dvbv5 );
-void dvbv5_message_dialog ( const char *error, const char *file_or_info, GtkMessageType mesg_type, GtkWindow *window );
+void scan_signals ( Dvbv5 * );
+void zap_signals  ( Dvbv5 * );
+
+gboolean zap_signal_parse_dvb_file ( const char *, Dvbv5 * );
+
+void dvbv5_message_dialog ( const char *, const char *, GtkMessageType, GtkWindow * );
+
+void dvbv5_dmx_monitor_clear ( Dvbv5 * );
+void dvbv5_dmx_monitor_stop_one ( uint16_t, gboolean, gboolean, Dvbv5 * );
 
 #endif // GTK_TYPE_APPLICATION

@@ -12,14 +12,38 @@
 
 #include <gtk/gtk.h>
 
+#define MAX_MONITOR 128
+
+typedef struct _Monitor Monitor;
+
+struct _Monitor
+{
+	uint16_t id[MAX_MONITOR];
+	uint32_t bitrate[MAX_MONITOR];
+	uint8_t  prw_status[MAX_MONITOR];
+	uint8_t  rec_status[MAX_MONITOR];
+};
+
 enum cols_n
 {
 	COL_NUM,
+	COL_PRW,
+	COL_REC,
 	COL_CHAHHEL,
+	COL_PRW_BITR,
+	COL_REC_SIZE,
+	COL_FREQ,
 	COL_SID,
-	COL_VIDEO_PID,
-	COL_AUDIO_PID,
+	COL_VPID,
+	COL_APID,
+	COL_REC_FILE,
 	NUM_COLS
+};
+
+enum out_dmx
+{
+	DMX_OUT_ALL_PIDS = 4,
+	DMX_OUT_OFF = 5
 };
 
 typedef struct _OutDemux OutDemux;
@@ -49,20 +73,31 @@ struct _Zap
 	GtkTreeView *treeview;
 	GtkEntry *entry_file;
 	GtkComboBoxText *combo_dmx;
-	GtkCheckButton *toggled_prw, *toggled_rec, *toggled_stm, *toggled_tmo;
+	GtkCheckButton *toggled_prw, *toggled_rec, *toggled_stm;
 
-	gboolean zap_status;
+	GtkTreeIter zap_iter;
+
 	gboolean stm_status, rec_status, prw_status;
+	ulong prw_signal_id, rec_signal_id, stm_signal_id;
 
-	ulong prw_signal_id, rec_signal_id, stm_signal_id, tmo_signal_id;
+	char *host;
+	uint16_t port;
+
+	Monitor *monitor;
 };
 
-GType zap_get_type (void);
+GType zap_get_type ( void );
 
-Zap * zap_new (void);
+Zap * zap_new ( void );
 
-void zap_stop_toggled_all ( Zap *zap );
-void zap_set_active_toggled_block ( ulong signal_id, gboolean active, GtkCheckButton *toggle );
-void zap_treeview_append ( const char *channel, uint16_t sid, uint16_t apid, uint16_t vpid, Zap *zap );
+uint8_t zap_get_dmx ( uint8_t );
+
+void zap_treeview_append ( const char *, uint16_t, uint16_t, uint16_t, uint32_t, Zap * );
+
+void zap_stop_toggled_all ( Zap * );
+
+#ifndef LIGHT
+void zap_set_active_toggled_block ( ulong, gboolean, GtkCheckButton * );
+#endif
 
 #endif // ZAP_H

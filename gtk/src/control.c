@@ -18,7 +18,6 @@ struct _Control
 
 G_DEFINE_TYPE ( Control, control, GTK_TYPE_BOX )
 
-static uint8_t size_icon = 20;
 static const char *b_n[NUM_BUTTONS][3] = 
 {
 	{ "start", "dvb-start", "⏵" }, { "stop", "dvb-stop", "⏹" }, { "mini", "dvb-mini", "🗕" },
@@ -33,7 +32,7 @@ void control_button_set_sensitive ( const char *name, gboolean set, Control *con
 	}
 }
 
-static gboolean control_check_icon_theme ( const char *name_icon )
+gboolean control_check_icon_theme ( const char *name_icon )
 {
 	gboolean ret = FALSE;
 
@@ -41,7 +40,7 @@ static gboolean control_check_icon_theme ( const char *name_icon )
 
 	if ( icons == NULL ) return ret;
 
-	uint8_t j = 0, numfields = g_strv_length ( icons );
+	uint j = 0, numfields = g_strv_length ( icons );
 
 	for ( j = 0; j < numfields; j++ )
 	{
@@ -103,10 +102,9 @@ GtkButton * control_create_button ( GtkBox *h_box, const char *name, const char 
 
 static void control_signal_handler ( GtkButton *button, Control *control )
 {
-	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
-	{
-		if ( button == control->button[c] ) g_signal_emit_by_name ( control, "button-clicked", b_n[c][0] );
-	}
+	const char *name = gtk_widget_get_name ( GTK_WIDGET ( button ) );
+
+	g_signal_emit_by_name ( control, "button-clicked", name );
 }
 
 static void control_init ( Control *control )
@@ -117,7 +115,8 @@ static void control_init ( Control *control )
 
 	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
 	{
-		control->button[c] = control_create_button ( box, b_n[c][1], b_n[c][2], size_icon );
+		control->button[c] = control_create_button ( box, b_n[c][1], b_n[c][2], SIZE_ICONS );
+		gtk_widget_set_name ( GTK_WIDGET ( control->button[c] ), b_n[c][0] );
 		g_signal_connect ( control->button[c], "clicked", G_CALLBACK ( control_signal_handler ), control );
 	}
 }
@@ -135,9 +134,7 @@ static void control_class_init ( ControlClass *class )
 		0, NULL, NULL, g_cclosure_marshal_VOID__STRING, G_TYPE_NONE, 1, G_TYPE_STRING );
 }
 
-Control * control_new ( uint8_t icon_size )
+Control * control_new ( void )
 {
-	size_icon = icon_size;
-
 	return g_object_new ( CONTROL_TYPE_BOX, NULL );
 }

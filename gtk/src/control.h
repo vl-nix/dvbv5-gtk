@@ -12,15 +12,20 @@
 
 #include <gtk/gtk.h>
 
+#define SIZE_ICONS 20
 #define NUM_BUTTONS 4
 
 #define CONTROL_TYPE_BOX                    control_get_type ()
 G_DECLARE_FINAL_TYPE ( Control, control, CONTROL, BOX, GtkBox )
 
-Control * control_new ( uint8_t icon_size );
+Control * control_new ( void );
 
-void control_resize_icon ( uint8_t icon_size, Control *control );
-void control_button_set_sensitive ( const char *name, gboolean set, Control *control );
-GtkButton * control_create_button ( GtkBox *h_box, const char *name, const char *icon_u, uint8_t icon_size );
+void control_resize_icon ( uint8_t , Control * );
+
+void control_button_set_sensitive ( const char *, gboolean, Control * );
+
+GtkButton * control_create_button ( GtkBox *, const char *, const char *, uint8_t );
+
+gboolean control_check_icon_theme ( const char * );
 
 #endif // CONTROL_H

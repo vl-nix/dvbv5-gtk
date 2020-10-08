@@ -35,14 +35,10 @@ struct _Scan
 	GtkButton *button_lnb;
 	GtkEntry *entry_int, *entry_out;
 	GtkComboBoxText *combo_int, *combo_out;
-
-	uint8_t adapter, frontend, demux, time_mult, diseqc_wait;
-	uint8_t new_freqs, get_detect, get_nit, other_nit;
-	int8_t lna, lnb, sat_num;
 };
 
-GType scan_get_type (void);
+GType scan_get_type ( void );
 
-Scan * scan_new (void);
+Scan * scan_new ( void );
 
 #endif // SCAN_H

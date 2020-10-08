@@ -70,9 +70,9 @@ static char * file_open_save ( const char *path, const char *file, const char *a
 
 static void file_set_entry ( const char *file, GtkEntry *entry )
 {
-	char *name = g_path_get_basename ( file );
-		gtk_entry_set_text ( entry, name );
-	free ( name );
+	g_autofree char *name = g_path_get_basename ( file );
+
+	gtk_entry_set_text ( entry, name );
 }
 
 char * file_open ( const char *dir, GtkEntry *entry, GtkWindow *window )

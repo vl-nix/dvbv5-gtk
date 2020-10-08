@@ -12,7 +12,8 @@
 
 #include <gtk/gtk.h>
 
-const char * lnb_get_desc ( const char *lnb_name );
-void lnb_set_name_combo ( GtkComboBoxText *combo_lnb );
+const char * lnb_get_desc ( const char * );
+
+void lnb_set_name_combo ( GtkComboBoxText * );
 
 #endif // LNB_H

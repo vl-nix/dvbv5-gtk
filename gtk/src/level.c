@@ -20,29 +20,24 @@ struct _Level
 
 G_DEFINE_TYPE ( Level, level, GTK_TYPE_BOX )
 
-void level_set_sgn_snr ( uint8_t qual, char *sgl, char *snr, float sgl_gd, float snr_gd, gboolean fe_lock, Level *level )
+void level_set_sgn_snr ( uint8_t qual, char *sgl, char *snr, double sgl_gd, double snr_gd, gboolean fe_lock, Level *level )
 {
 	gtk_progress_bar_set_fraction ( level->bar_sgn, sgl_gd / 100 );
 	gtk_progress_bar_set_fraction ( level->bar_snr, snr_gd / 100 );
 
-	const char *text_qul = "bfbfbf";
-	if ( qual == 3 ) text_qul = "ff00ff"; // Good - Magenta
-	if ( qual == 2 ) text_qul = "00ffff"; // Ok   - Cyan
-	if ( qual == 1 ) text_qul = "ff9000"; // Poor - Orange ( Strong Orangish Yellow )
+	const char *text_q = "bfbfbf";
+	if ( qual == 3 ) text_q = "ff00ff"; // Good - Magenta
+	if ( qual == 2 ) text_q = "00ffff"; // Ok   - Aqua
+	if ( qual == 1 ) text_q = "ff9000"; // Poor - Orange
 
-	char *markup = NULL;
+	const char *text_l = "bfbfbf";
+	if ( fe_lock  ) text_l = "00ff00"; else text_l = "ff0000";
+	if ( sgl_gd == 0 && snr_gd == 0 ) text_l = "bfbfbf";
 
-	if ( fe_lock )
-		markup = g_markup_printf_escaped ( "Quality<span foreground=\"#%s\">  ◉  </span>%s<span foreground=\"#00ff00\">  ◉  </span>%s", text_qul, sgl, snr );
-	else
-		markup = g_markup_printf_escaped ( "Quality<span foreground=\"#%s\">  ◉  </span>%s<span foreground=\"#ff0000\">  ◉  </span>%s", text_qul, sgl, snr );
-
-	if ( sgl_gd == 0 && snr_gd == 0 )
-		markup = g_markup_printf_escaped ( "Quality<span foreground=\"#%s\">  ◉  </span>%s<span foreground=\"#bfbfbf\">  ◉  </span>%s", text_qul, sgl, snr );
+	g_autofree char *markup = g_markup_printf_escaped 
+		( "Quality<span foreground=\"#%s\">  ◉  </span>%s<span foreground=\"#%s\">  ◉  </span>%s", text_q, sgl, text_l, snr );
 
 	gtk_label_set_markup ( level->sgn_snr, markup );
-
-	free ( markup );
 }
 
 static void level_init ( Level *level )
@@ -70,7 +65,7 @@ static void level_class_init ( LevelClass *class )
 	G_OBJECT_CLASS (class)->finalize = level_finalize;
 }
 
-Level * level_new (void)
+Level * level_new ( void )
 {
 	return g_object_new ( LEVEL_TYPE_BOX, NULL );
 }

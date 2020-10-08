@@ -12,9 +12,9 @@
 
 #include <gtk/gtk.h>
 
-char * uri_get_path ( const char *uri );
-char * dir_open  ( const char *path, GtkWindow *window );
-char * file_open ( const char *dir, GtkEntry *entry, GtkWindow *window );
-char * file_save ( const char *dir, GtkEntry *entry, GtkWindow *window );
+char * uri_get_path ( const char * );
+char * dir_open  ( const char *, GtkWindow * );
+char * file_open ( const char *, GtkEntry *, GtkWindow * );
+char * file_save ( const char *, GtkEntry *, GtkWindow * );
 
 #endif // FILE_H

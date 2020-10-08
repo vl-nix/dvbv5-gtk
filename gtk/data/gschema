@@ -10,14 +10,8 @@
     <key name="opacity" type="u">
       <default>100</default>
     </key>
-    <key name="host" type="s">
-      <default>'127.0.0.1'</default>
-    </key>
-    <key name="port" type="s">
-      <default>'64000'</default>
-    </key>
     <key name="rec-dir" type="s">
-      <default>'home'</default>
+      <default>'none'</default>
     </key>
     <key name="theme" type="s">
       <default>'none'</default>

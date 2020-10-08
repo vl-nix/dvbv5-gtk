@@ -24,13 +24,12 @@ struct _TcpServer
 	GstElement *server_sink;
 };
 
-TcpServer * tcpserver_new (void);
-void tcpserver_destroy ( TcpServer *tcpserver );
+TcpServer * tcpserver_new ( void );
+void tcpserver_destroy ( TcpServer * );
 
-void tcpserver_stop   ( TcpServer *tcpserver );
-void tcpserver_start  ( TcpServer *tcpserver );
-uint tcpserver_get ( TcpServer *tcpserver );
-void tcpserver_set ( TcpServer *tcpserver, const char *host, uint port, const char *file );
+void tcpserver_stop   ( TcpServer * );
+void tcpserver_start  ( TcpServer * );
+void tcpserver_set ( TcpServer *, const char *, uint16_t, const char * );
 
 
 typedef struct _Record Record;
@@ -42,12 +41,12 @@ struct _Record
 	GstElement *file_sink;
 };
 
-Record * record_new (void);
-void record_destroy ( Record *record );
+Record * record_new ( void );
+void record_destroy ( Record * );
 
-void record_stop   ( Record *record );
-void record_start  ( Record *record );
-void record_set ( Record *record, const char *file, const char *file_rec );
+void record_stop   ( Record * );
+void record_start  ( Record * );
+void record_set ( Record *, const char *, const char * );
 
 
 typedef struct _Player Player;
@@ -57,11 +56,28 @@ struct _Player
 	GstElement *playbin;
 };
 
-Player * player_new ( gboolean add_time );
-void player_destroy ( Player *player );
+Player * player_new ( void );
+void player_destroy ( Player * );
 
-void player_stop  ( Player *player );
-void player_play  ( Player *player, const char *uri );
+void player_stop  ( Player * );
+void player_play  ( Player *, const char * );
+
+
+typedef struct _PlayerPipe PlayerPipe;
+
+struct _PlayerPipe
+{
+	GstElement *pipeline;
+	GstElement *fd_src;
+	GstElement *vqueue2;
+	GstElement *aqueue2;
+};
+
+PlayerPipe * player_pipe_new ( uint16_t );
+void player_pipe_destroy ( PlayerPipe * );
+
+void player_pipe_stop  ( PlayerPipe * );
+void player_pipe_play  ( PlayerPipe *, int );
 
 #endif
 
