@@ -97,6 +97,8 @@ GtkButton * control_create_button ( GtkBox *h_box, const char *name, const char 
 
 	if ( h_box ) gtk_box_pack_start ( h_box, GTK_WIDGET ( button ), TRUE, TRUE, 0 );
 
+	gtk_widget_set_visible ( GTK_WIDGET ( button ), TRUE );
+
 	return button;
 }
 
@@ -112,6 +114,7 @@ static void control_init ( Control *control )
 	GtkBox *box = GTK_BOX ( control );
 	gtk_orientable_set_orientation ( GTK_ORIENTABLE ( box ), GTK_ORIENTATION_HORIZONTAL );
 	gtk_box_set_spacing ( box, 5 );
+	gtk_widget_set_visible ( GTK_WIDGET ( box ), TRUE );
 
 	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
 	{
@@ -130,8 +133,8 @@ static void control_class_init ( ControlClass *class )
 {
 	G_OBJECT_CLASS (class)->finalize = control_finalize;
 
-	g_signal_new ( "button-clicked", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_FIRST,
-		0, NULL, NULL, g_cclosure_marshal_VOID__STRING, G_TYPE_NONE, 1, G_TYPE_STRING );
+	g_signal_new ( "button-clicked", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
+		0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_STRING );
 }
 
 Control * control_new ( void )

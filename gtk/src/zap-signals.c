@@ -123,6 +123,7 @@ static void zap_dvr_stream_set_host ( Dvbv5 *dvbv5 )
 
 	GtkBox *m_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 0 );
 	gtk_box_set_spacing ( m_box, 5 );
+	gtk_widget_set_visible ( GTK_WIDGET ( m_box ), TRUE );
 
 	char port[10];
 	sprintf ( port, "%d", dvbv5->zap->port );
@@ -131,30 +132,35 @@ static void zap_dvr_stream_set_host ( Dvbv5 *dvbv5 )
 	gtk_entry_set_text ( entry, dvbv5->zap->host );
 	g_signal_connect ( entry, "changed", G_CALLBACK ( zap_dvr_stream_entry_changed_host ), dvbv5 );
 	gtk_box_pack_start ( m_box, GTK_WIDGET ( entry ), FALSE, FALSE, 0 );
+	gtk_widget_set_visible ( GTK_WIDGET ( entry ), TRUE );
 
 	entry = (GtkEntry *)gtk_entry_new ();
 	gtk_entry_set_text ( entry, port );
 	g_signal_connect ( entry, "changed", G_CALLBACK ( zap_dvr_stream_entry_changed_port ), dvbv5 );
 	gtk_box_pack_start ( m_box, GTK_WIDGET ( entry ), FALSE, FALSE, 0 );
+	gtk_widget_set_visible ( GTK_WIDGET ( entry ), TRUE );
 
 	GtkBox *h_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_HORIZONTAL, 0 );
 	gtk_box_set_spacing ( h_box, 5 );
+	gtk_widget_set_visible ( GTK_WIDGET ( h_box ), TRUE );
 
 	GtkButton *button = control_create_button ( NULL, "dvb-quit", "⏻", 16 );
 	g_signal_connect_swapped ( button, "clicked", G_CALLBACK ( gtk_widget_destroy ), window );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( button ), TRUE, TRUE, 0 );
+	gtk_widget_set_visible ( GTK_WIDGET ( button ), TRUE );
 
 	button = control_create_button ( NULL, "dvb-start", "⏵", 16 );
 	g_signal_connect ( button, "clicked", G_CALLBACK ( zap_dvr_stream_start ), dvbv5 );
 	g_signal_connect_swapped ( button, "clicked", G_CALLBACK ( gtk_widget_destroy ), window );
 	gtk_box_pack_end ( h_box, GTK_WIDGET ( button ), TRUE, TRUE, 0 );
+	gtk_widget_set_visible ( GTK_WIDGET ( button ), TRUE );
 
 	gtk_box_pack_end ( m_box, GTK_WIDGET ( h_box ), FALSE, FALSE, 0 );
 
 	gtk_container_set_border_width ( GTK_CONTAINER ( m_box ), 10 );
 	gtk_container_add ( GTK_CONTAINER ( window ), GTK_WIDGET ( m_box ) );
 
-	gtk_widget_show_all ( GTK_WIDGET ( window ) );
+	gtk_window_present ( window );
 }
 
 static void zap_signal_toggled_stream ( GtkToggleButton *button, Dvbv5 *dvbv5 )

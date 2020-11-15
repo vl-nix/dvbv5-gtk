@@ -50,6 +50,11 @@ static void level_init ( Level *level )
 	level->bar_sgn = (GtkProgressBar *)gtk_progress_bar_new ();
 	level->bar_snr = (GtkProgressBar *)gtk_progress_bar_new ();
 
+	gtk_widget_set_visible ( GTK_WIDGET ( level->sgn_snr ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( level->bar_sgn ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( level->bar_snr ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( box ), TRUE );
+
 	gtk_box_pack_start ( box, GTK_WIDGET ( level->sgn_snr ), FALSE, FALSE, 0 );
 	gtk_box_pack_start ( box, GTK_WIDGET ( level->bar_sgn ), FALSE, FALSE, 0 );
 	gtk_box_pack_start ( box, GTK_WIDGET ( level->bar_snr ), FALSE, FALSE, 0 );

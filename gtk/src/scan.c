@@ -23,6 +23,7 @@ static GtkLabel * scan_create_label ( const char *text )
 {
 	GtkLabel *label = (GtkLabel *)gtk_label_new ( text );
 	gtk_widget_set_halign ( GTK_WIDGET ( label ), GTK_ALIGN_START );
+	gtk_widget_set_visible ( GTK_WIDGET ( label ), TRUE );
 
 	return label;
 }
@@ -35,6 +36,8 @@ static GtkSpinButton * scan_create_spinbutton ( int16_t min, int16_t max, uint8_
 
 	scan->spinbutton[num] = spinbutton;
 
+	gtk_widget_set_visible ( GTK_WIDGET ( spinbutton ), TRUE );
+
 	return spinbutton;
 }
 
@@ -45,6 +48,8 @@ static GtkCheckButton * scan_create_checkbutton ( int16_t value, uint8_t num, co
 	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON ( checkbutton ), ( value ) ? TRUE : FALSE );
 
 	scan->checkbutton[num] = checkbutton;
+
+	gtk_widget_set_visible ( GTK_WIDGET ( checkbutton ), TRUE );
 
 	return checkbutton;
 }
@@ -60,6 +65,7 @@ static void scan_append_text_combo_box ( GtkComboBoxText *combo_box, const char 
 static GtkBox * scan_create_combo_box_lnb ( Scan *scan )
 {
 	GtkBox *h_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_HORIZONTAL, 0 );
+	gtk_widget_set_visible ( GTK_WIDGET ( h_box ), TRUE );
 
 	scan->combo_lnb = (GtkComboBoxText *) gtk_combo_box_text_new ();
 	gtk_combo_box_text_append ( scan->combo_lnb, "NONE", "None" );
@@ -71,6 +77,9 @@ static GtkBox * scan_create_combo_box_lnb ( Scan *scan )
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( scan->combo_lnb  ), TRUE, TRUE, 0 );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( scan->button_lnb ), TRUE, TRUE, 0 );
 
+	gtk_widget_set_visible ( GTK_WIDGET ( scan->combo_lnb  ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( scan->button_lnb ), TRUE );
+
 	return h_box;
 }
 
@@ -80,6 +89,8 @@ static GtkComboBoxText * scan_create_combo_box_lna ( Scan *scan )
 
 	scan->combo_lna = (GtkComboBoxText *) gtk_combo_box_text_new ();
 	scan_append_text_combo_box ( scan->combo_lna, lna, G_N_ELEMENTS ( lna ), 2 );
+
+	gtk_widget_set_visible ( GTK_WIDGET ( scan->combo_lna ), TRUE );
 
 	return scan->combo_lna;
 }
@@ -94,12 +105,15 @@ static GtkComboBoxText * scan_create_combo_box_format ( uint8_t num, Scan *scan 
 	if ( num == INT_F ) { scan_append_text_combo_box ( combo_box, inp, G_N_ELEMENTS ( inp ), 0 ); scan->combo_int = combo_box; }
 	if ( num == OUT_F ) { scan_append_text_combo_box ( combo_box, out, G_N_ELEMENTS ( out ), 0 ); scan->combo_out = combo_box; }
 
+	gtk_widget_set_visible ( GTK_WIDGET ( combo_box ), TRUE );
+
 	return combo_box;
 }
 
 static GtkBox * scan_set_initial_output_file ( const char *file, uint8_t num, Scan *scan )
 {
 	GtkBox *v_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 0 );
+	gtk_widget_set_visible ( GTK_WIDGET ( v_box ), TRUE );
 
 	GtkEntry *entry = (GtkEntry *)gtk_entry_new ();
 	gtk_entry_set_text ( entry, file );
@@ -110,6 +124,8 @@ static GtkBox * scan_set_initial_output_file ( const char *file, uint8_t num, Sc
 	if ( num == OUT_F ) scan->entry_out = entry;
 
 	gtk_box_pack_start ( v_box, GTK_WIDGET ( entry ), FALSE, FALSE, 0 );
+
+	gtk_widget_set_visible ( GTK_WIDGET ( entry ), TRUE );
 
 	return v_box;
 }
@@ -126,6 +142,8 @@ static void scan_create ( Scan *scan )
 	gtk_widget_set_margin_bottom ( GTK_WIDGET ( grid ), 10 );
 	gtk_widget_set_margin_start  ( GTK_WIDGET ( grid ), 10 );
 	gtk_widget_set_margin_end    ( GTK_WIDGET ( grid ), 10 );
+
+	gtk_widget_set_visible ( GTK_WIDGET ( grid ), TRUE );
 
 	struct DataDevice { const char *text; int16_t value; const char *text_2; int16_t value_2; } data_n[] =
 	{

@@ -493,12 +493,18 @@ static GtkBox * dvbv5_create_info ( Dvbv5 *dvbv5 )
 	gtk_box_pack_end   ( h_box, GTK_WIDGET ( dvbv5->toggle_fe  ), FALSE, FALSE, 0 );
 	gtk_box_pack_end   ( h_box, GTK_WIDGET ( dvbv5->label_status  ), FALSE, FALSE, 0 );
 
+	gtk_widget_set_visible ( GTK_WIDGET ( h_box ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( dvbv5->toggle_fe ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( dvbv5->label_freq ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( dvbv5->label_status ), TRUE );
+
 	return h_box;
 }
 
 static GtkBox * dvbv5_create_control_box ( Dvbv5 *dvbv5 )
 {
 	GtkBox *v_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 0 );
+	gtk_widget_set_visible ( GTK_WIDGET ( v_box ), TRUE );
 
 	gtk_box_pack_start ( v_box, GTK_WIDGET ( dvbv5_create_info ( dvbv5 ) ), FALSE, FALSE, 0 );
 
@@ -572,7 +578,7 @@ static GtkFileChooserButton * dvbv5_header_bar_create_chooser_button ( const cha
 	if ( prf == PREF_RECORD ) g_signal_connect ( button, "file-set", G_CALLBACK ( dvbv5_button_changed_record ), dvbv5 );
 	if ( prf == PREF_THEME  ) g_signal_connect ( button, "file-set", G_CALLBACK ( dvbv5_button_changed_theme  ), dvbv5 );
 
-	gtk_widget_show ( GTK_WIDGET ( button ) );
+	gtk_widget_set_visible ( GTK_WIDGET ( button ), TRUE );
 
 	return button;
 }
@@ -607,29 +613,21 @@ static GtkSpinButton * dvbv5_header_bar_create_spinbutton ( uint val, uint16_t m
 	if ( prf == PREF_OPACITY   ) g_signal_connect ( spinbutton, "changed", G_CALLBACK ( dvbv5_spinbutton_changed_opacity ), dvbv5 );
 	if ( prf == PREF_ICON_SIZE ) g_signal_connect ( spinbutton, "changed", G_CALLBACK ( dvbv5_spinbutton_changed_size_i  ), dvbv5 );
 
-	gtk_widget_show ( GTK_WIDGET ( spinbutton ) );
+	gtk_widget_set_visible ( GTK_WIDGET ( spinbutton ), TRUE );
 
 	return spinbutton;
 }
 
 #endif
 
-static GtkHeaderBar * dvbv5_header_bar ( Dvbv5 *dvbv5 )
+static GtkPopover * dvbv5_popover_hbar ( Dvbv5 *dvbv5 )
 {
-	GtkHeaderBar *header_bar = (GtkHeaderBar *)gtk_header_bar_new ();
-	gtk_header_bar_set_show_close_button ( header_bar, TRUE );
-	gtk_header_bar_set_title ( header_bar, PROGNAME );
-	gtk_header_bar_set_has_subtitle ( header_bar, FALSE );
-
-	GtkMenuButton *menu_button = (GtkMenuButton *)gtk_menu_button_new ();
-	gtk_button_set_label ( GTK_BUTTON ( menu_button ), "𝋯" );
-
-	dvbv5->popover = (GtkPopover *)gtk_popover_new ( GTK_WIDGET ( header_bar ) );
-	gtk_popover_set_position ( dvbv5->popover, GTK_POS_TOP );
-	gtk_container_set_border_width ( GTK_CONTAINER ( dvbv5->popover ), 10 );
+	GtkPopover *popover = (GtkPopover *)gtk_popover_new ( NULL );
+	gtk_container_set_border_width ( GTK_CONTAINER ( popover ), 5 );
 
 	GtkBox *vbox = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 5 );
 	gtk_box_set_spacing ( vbox, 5 );
+	gtk_widget_set_visible ( GTK_WIDGET ( vbox ), TRUE );
 
 #ifndef LIGHT
 
@@ -641,7 +639,8 @@ static GtkHeaderBar * dvbv5_header_bar ( Dvbv5 *dvbv5 )
 
 	if ( s_dir && g_str_has_prefix ( "none", s_dir ) ) { free ( s_dir ); s_dir = NULL; }
 
-	char *name = NULL, *path = NULL;
+	g_autofree char *name = NULL;
+	g_autofree char *path = NULL;
 
 	if ( !s_thm || ( s_thm && g_str_has_prefix ( "none", s_thm ) ) )
 	{
@@ -658,10 +657,11 @@ static GtkHeaderBar * dvbv5_header_bar ( Dvbv5 *dvbv5 )
 	gtk_box_pack_start ( vbox, GTK_WIDGET ( dvbv5_header_bar_create_spinbutton ( ( u_opc ) ? u_opc : 100, 40, 100, 1, "Opacity", PREF_OPACITY, dvbv5 ) ), FALSE, FALSE, 0 );
 	gtk_box_pack_start ( vbox, GTK_WIDGET ( dvbv5_header_bar_create_spinbutton ( ( u_isz ) ? u_isz : SIZE_ICONS, 8, 48, 1, "Icon-size", PREF_ICON_SIZE, dvbv5 ) ), FALSE, FALSE, 0 );
 
-	free ( path );
-	free ( name );
-
 #endif
+
+	GtkBox *hbox = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_HORIZONTAL, 0 );
+	gtk_box_set_spacing ( hbox, 5 );
+	gtk_widget_set_visible ( GTK_WIDGET ( hbox ), TRUE );
 
 	struct Data { const char *icon_u; const char *name; void ( *f )(GtkButton *, Dvbv5 *); } data_n[] =
 	{
@@ -674,18 +674,36 @@ static GtkHeaderBar * dvbv5_header_bar ( Dvbv5 *dvbv5 )
 	{
 		GtkButton *button = control_create_button ( NULL, data_n[c].name, data_n[c].icon_u, 16 );
 		g_signal_connect ( button, "clicked", G_CALLBACK ( data_n[c].f ), dvbv5 );
-		gtk_widget_show ( GTK_WIDGET ( button ) );
-		gtk_box_pack_start ( vbox, GTK_WIDGET ( button ), FALSE, FALSE, 0 );
+		gtk_widget_set_visible ( GTK_WIDGET ( button ), TRUE );
+		gtk_box_pack_start ( hbox, GTK_WIDGET ( button ), TRUE, TRUE, 0 );
 	}
 
-	gtk_container_add ( GTK_CONTAINER ( dvbv5->popover ), GTK_WIDGET ( vbox ) );
-	gtk_widget_show ( GTK_WIDGET ( vbox ) );
+	gtk_box_pack_start ( vbox, GTK_WIDGET ( hbox ), FALSE, FALSE, 0 );
+
+	gtk_container_add ( GTK_CONTAINER ( popover ), GTK_WIDGET ( vbox ) );
+
+	return popover;
+}
+
+static GtkHeaderBar * dvbv5_header_bar ( Dvbv5 *dvbv5 )
+{
+	GtkHeaderBar *header_bar = (GtkHeaderBar *)gtk_header_bar_new ();
+	gtk_header_bar_set_show_close_button ( header_bar, TRUE );
+	gtk_header_bar_set_title ( header_bar, PROGNAME );
+	gtk_header_bar_set_has_subtitle ( header_bar, FALSE );
+
+	GtkMenuButton *menu_button = (GtkMenuButton *)gtk_menu_button_new ();
+	gtk_button_set_label ( GTK_BUTTON ( menu_button ), "𝋯" );
+	gtk_widget_set_visible ( GTK_WIDGET ( menu_button ), TRUE );
+
+	dvbv5->popover = dvbv5_popover_hbar ( dvbv5 );
 
 	gtk_menu_button_set_popover ( menu_button, GTK_WIDGET ( dvbv5->popover ) );
 	gtk_header_bar_pack_end ( header_bar, GTK_WIDGET ( menu_button ) );
 
 	return header_bar;
 }
+
 
 #ifndef LIGHT
 
@@ -769,12 +787,15 @@ static void dvbv5_new_window ( GApplication *app )
 
 	GtkHeaderBar *header_bar = dvbv5_header_bar ( dvbv5 );
 	gtk_window_set_titlebar ( dvbv5->window, GTK_WIDGET ( header_bar ) );
+	gtk_widget_set_visible ( GTK_WIDGET ( header_bar ), TRUE );
 
 	GtkBox *main_vbox = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 0 );
 	gtk_box_set_spacing ( main_vbox, 5 );
+	gtk_widget_set_visible ( GTK_WIDGET ( main_vbox ), TRUE );
 
 	dvbv5->dvb_name = (GtkLabel *)gtk_label_new ( "Dvb Device" );
 	gtk_box_pack_start ( main_vbox, GTK_WIDGET ( dvbv5->dvb_name ), FALSE, FALSE, 0 );
+	gtk_widget_set_visible ( GTK_WIDGET ( dvbv5->dvb_name ), TRUE );
 
 	dvbv5->scan = scan_new ();
 	scan_signals ( dvbv5 );
@@ -784,6 +805,7 @@ static void dvbv5_new_window ( GApplication *app )
 
 	dvbv5->notebook = (GtkNotebook *)gtk_notebook_new ();
 	gtk_notebook_set_scrollable ( dvbv5->notebook, TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( dvbv5->notebook ), TRUE );
 
 	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->scan ), gtk_label_new ( "Scan" ) );
 	gtk_notebook_append_page ( dvbv5->notebook, GTK_WIDGET ( dvbv5->zap  ), gtk_label_new ( "Zap"  ) );
@@ -797,7 +819,7 @@ static void dvbv5_new_window ( GApplication *app )
 	gtk_container_set_border_width ( GTK_CONTAINER ( main_vbox ), 10 );
 	gtk_container_add   ( GTK_CONTAINER ( dvbv5->window ), GTK_WIDGET ( main_vbox ) );
 
-	gtk_widget_show_all ( GTK_WIDGET ( dvbv5->window ) );
+	gtk_window_present ( dvbv5->window );
 
 	g_autofree char *name = dvb_info_get_dvb_name ( dvbv5->dvb );
 

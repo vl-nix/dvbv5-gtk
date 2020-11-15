@@ -116,6 +116,7 @@ static GtkScrolledWindow * zap_create_treeview_scroll ( Zap *zap )
 {
 	GtkScrolledWindow *scroll = (GtkScrolledWindow *)gtk_scrolled_window_new ( NULL, NULL );
 	gtk_scrolled_window_set_policy ( scroll, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC );
+	gtk_widget_set_visible ( GTK_WIDGET ( scroll ), TRUE );
 
 	GtkListStore *store = gtk_list_store_new ( NUM_COLS, G_TYPE_UINT, G_TYPE_BOOLEAN, G_TYPE_BOOLEAN, 
 		G_TYPE_STRING, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING );
@@ -123,6 +124,7 @@ static GtkScrolledWindow * zap_create_treeview_scroll ( Zap *zap )
 	zap->treeview = (GtkTreeView *)gtk_tree_view_new_with_model ( GTK_TREE_MODEL ( store ) );
 	gtk_drag_dest_set ( GTK_WIDGET ( zap->treeview ), GTK_DEST_DEFAULT_ALL, NULL, 0, GDK_ACTION_COPY );
 	gtk_drag_dest_add_uri_targets  ( GTK_WIDGET ( zap->treeview ) );
+	gtk_widget_set_visible ( GTK_WIDGET ( zap->treeview ), TRUE );
 
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *column;
@@ -183,6 +185,7 @@ static void zap_init ( Zap *zap )
 
 	GtkBox *box = GTK_BOX ( zap );
 	gtk_orientable_set_orientation ( GTK_ORIENTABLE ( box ), GTK_ORIENTATION_VERTICAL );
+	gtk_widget_set_visible ( GTK_WIDGET ( box ), TRUE );
 
 	zap->rec_status = FALSE;
 	zap->stm_status = FALSE;
@@ -195,9 +198,12 @@ static void zap_init ( Zap *zap )
 
 	GtkBox *h_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_HORIZONTAL, 0 );
 	gtk_box_set_spacing ( h_box, 5 );
+	gtk_widget_set_visible ( GTK_WIDGET ( h_box ), TRUE );
 
 #ifndef LIGHT
-	gtk_box_pack_start ( h_box, GTK_WIDGET ( gtk_label_new ( "Dvr:  " ) ), FALSE, FALSE, 0 );
+	GtkLabel *label = (GtkLabel *)gtk_label_new ( "Dvr:  " );
+	gtk_widget_set_visible ( GTK_WIDGET ( label ), TRUE );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( label ), FALSE, FALSE, 0 );
 
 	zap->toggled_prw = (GtkCheckButton *)gtk_check_button_new_with_label ( "Preview" );
 	zap->toggled_rec = (GtkCheckButton *)gtk_check_button_new_with_label ( "Record" );
@@ -206,10 +212,15 @@ static void zap_init ( Zap *zap )
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->toggled_prw ), FALSE, FALSE, 0 );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->toggled_rec ), FALSE, FALSE, 0 );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->toggled_stm ), FALSE, FALSE, 0 );
+
+	gtk_widget_set_visible ( GTK_WIDGET ( zap->toggled_prw ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( zap->toggled_rec ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( zap->toggled_stm ), TRUE );
 #endif
 
 	GtkButton *button_clear = (GtkButton *)gtk_button_new_from_icon_name ( "edit-clear", GTK_ICON_SIZE_MENU );
 	g_signal_connect_swapped ( button_clear, "clicked", G_CALLBACK ( gtk_list_store_clear ), GTK_LIST_STORE ( gtk_tree_view_get_model ( zap->treeview ) ) );
+	gtk_widget_set_visible ( GTK_WIDGET ( button_clear ), TRUE );
 
 	gtk_box_pack_end   ( h_box, GTK_WIDGET ( button_clear ), FALSE, FALSE, 0 );
 
@@ -217,6 +228,7 @@ static void zap_init ( Zap *zap )
 
 	h_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_HORIZONTAL, 0 );
 	gtk_box_set_spacing ( h_box, 5 );
+	gtk_widget_set_visible ( GTK_WIDGET ( h_box ), TRUE );
 
 	zap->entry_file = (GtkEntry *)gtk_entry_new ();
 	gtk_entry_set_text ( zap->entry_file, "dvb_channel.conf" );
@@ -232,6 +244,9 @@ static void zap_init ( Zap *zap )
 	zap_combo_dmx_add ( G_N_ELEMENTS ( out_demux_n ), zap );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->combo_dmx ), TRUE, TRUE, 0 );
 
+	gtk_widget_set_visible ( GTK_WIDGET ( zap->entry_file ), TRUE );
+	gtk_widget_set_visible ( GTK_WIDGET ( zap->combo_dmx  ), TRUE );
+
 	gtk_box_pack_start ( box, GTK_WIDGET ( h_box ), FALSE, FALSE, 0 );
 }
 
@@ -245,11 +260,11 @@ static void zap_class_init ( ZapClass *class )
 	G_OBJECT_CLASS (class)->finalize = zap_finalize;
 
 #ifndef LIGHT
-	g_signal_new ( "button-toggled-prw", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_FIRST,
-		0, NULL, NULL, g_cclosure_marshal_VOID__STRING, G_TYPE_NONE, 1, G_TYPE_STRING );
+	g_signal_new ( "button-toggled-prw", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
+		0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_STRING );
 #endif
-	g_signal_new ( "button-toggled-rec", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_FIRST,
-		0, NULL, NULL, g_cclosure_marshal_VOID__STRING, G_TYPE_NONE, 1, G_TYPE_STRING );
+	g_signal_new ( "button-toggled-rec", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
+		0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_STRING );
 }
 
 Zap * zap_new (void)
