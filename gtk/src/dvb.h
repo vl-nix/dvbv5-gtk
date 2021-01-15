@@ -27,7 +27,7 @@ struct _DvbStat
 {
 	gboolean fe_lock;
 	char *sgl_str, *snr_str;
-	uint32_t qual, freq;
+	u_int32_t qual, freq;
 	double sgl, snr;
 };
 
@@ -42,19 +42,19 @@ struct _Dvb
 	char *input_file, *output_file, *zap_file;
 	enum dvb_file_formats input_format, output_format;
 
-	uint16_t apids[MAX_AUDIO], pids[6]; // 0 - sid, 1 - vpid, 2 - apid, 3 - apid_len, 4 - sid found, 5 - vpid found
-	uint32_t freq_scan, progs_scan;
+	u_int16_t apids[MAX_AUDIO], pids[6]; // 0 - sid, 1 - vpid, 2 - apid, 3 - apid_len, 4 - sid found, 5 - vpid found
+	u_int32_t freq_scan, progs_scan;
 
-	uint8_t adapter, frontend, demux, time_mult, diseqc_wait;
-	uint8_t new_freqs, get_detect, get_nit, other_nit;
+	u_int8_t adapter, frontend, demux, time_mult, diseqc_wait;
+	u_int8_t new_freqs, get_detect, get_nit, other_nit;
 	int8_t lna, lnb, sat_num;
 
 	GMutex mutex;
 	GThread *thread;
-	uint8_t thread_stop;
+	u_int8_t thread_stop;
 
-	uint8_t descr_num;
-	uint8_t debug;
+	u_int8_t descr_num;
+	u_int8_t debug;
 
 	gboolean fe_lock;
 };
@@ -67,13 +67,13 @@ void dvb_scan_stop ( Dvb * );
 const char * dvb_scan ( Dvb * );
 
 void dvb_zap_stop ( Dvb * );
-const char * dvb_zap ( const char *, uint8_t, Dvb * );
+const char * dvb_zap ( const char *, u_int8_t, Dvb * );
 
 void dvb_info_stop ( Dvb * );
 const char * dvb_info ( Dvb * );
 
 DvbStat dvb_fe_stat_get ( uint, Dvb * );
 char * dvb_info_get_dvb_name ( Dvb * );
-uint8_t dvb_fe_get_is_satellite ( uint8_t );
+u_int8_t dvb_fe_get_is_satellite ( u_int8_t );
 
 #endif

@@ -38,7 +38,7 @@ void tcpserver_start ( TcpServer *tcpserver )
 	gst_element_set_state ( tcpserver->pipeline, GST_STATE_PLAYING );
 }
 
-void tcpserver_set ( TcpServer *tcpserver, const char *host, uint16_t port, const char *file )
+void tcpserver_set ( TcpServer *tcpserver, const char *host, u_int16_t port, const char *file )
 {
 	g_object_set ( tcpserver->file_src, "location", file, NULL );
 	g_object_set ( tcpserver->server_sink, "host",  host, NULL );
@@ -376,7 +376,7 @@ static void zap_gst_pad_audio_video ( G_GNUC_UNUSED GstElement *element, GstPad 
 	if ( zap_gst_pad_check_type ( pad, "video" ) ) zap_gst_pad_add ( pad, player->vqueue2, "decode video" );
 }
 
-static gboolean player_pipe_init ( PlayerPipe *player, uint16_t vpid )
+static gboolean player_pipe_init ( PlayerPipe *player, u_int16_t vpid )
 {
 	player->pipeline  = gst_pipeline_new ( "pipeline-record" );
 	player->fd_src    = gst_element_factory_make ( "fdsrc", NULL );
@@ -486,7 +486,7 @@ void player_pipe_destroy ( PlayerPipe *player )
 	free ( player );
 }
 
-PlayerPipe * player_pipe_new ( uint16_t vpid )
+PlayerPipe * player_pipe_new ( u_int16_t vpid )
 {
 	PlayerPipe *player = g_new0 ( PlayerPipe, 1 );
 

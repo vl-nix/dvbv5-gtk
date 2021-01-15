@@ -26,7 +26,7 @@ static const char *b_n[NUM_BUTTONS][3] =
 
 void control_button_set_sensitive ( const char *name, gboolean set, Control *control )
 {
-	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
+	u_int8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
 	{
 		if ( g_str_has_prefix ( b_n[c][0], name ) ) { gtk_widget_set_sensitive ( GTK_WIDGET ( control->button[c] ), set ); break; }
 	}
@@ -52,7 +52,7 @@ gboolean control_check_icon_theme ( const char *name_icon )
 	return ret;
 }
 
-static GtkImage * control_create_image ( const char *icon, uint8_t size )
+static GtkImage * control_create_image ( const char *icon, u_int8_t size )
 {
 	GdkPixbuf *pixbuf = gtk_icon_theme_load_icon ( gtk_icon_theme_get_default (), icon, size, GTK_ICON_LOOKUP_USE_BUILTIN, NULL );
 
@@ -64,7 +64,7 @@ static GtkImage * control_create_image ( const char *icon, uint8_t size )
 	return image;
 }
 
-static GtkButton * control_set_image_button ( const char *icon, uint8_t size )
+static GtkButton * control_set_image_button ( const char *icon, u_int8_t size )
 {
 	GtkButton *button = (GtkButton *)gtk_button_new ();
 
@@ -75,9 +75,9 @@ static GtkButton * control_set_image_button ( const char *icon, uint8_t size )
 	return button;
 }
 
-void control_resize_icon ( uint8_t icon_size, Control *control )
+void control_resize_icon ( u_int8_t icon_size, Control *control )
 {
-	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
+	u_int8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
 	{
 		if ( !control_check_icon_theme ( b_n[c][1] ) ) continue;
 
@@ -86,7 +86,7 @@ void control_resize_icon ( uint8_t icon_size, Control *control )
 	}
 }
 
-GtkButton * control_create_button ( GtkBox *h_box, const char *name, const char *icon_u, uint8_t icon_size )
+GtkButton * control_create_button ( GtkBox *h_box, const char *name, const char *icon_u, u_int8_t icon_size )
 {
 	GtkButton *button;
 
@@ -116,7 +116,7 @@ static void control_init ( Control *control )
 	gtk_box_set_spacing ( box, 5 );
 	gtk_widget_set_visible ( GTK_WIDGET ( box ), TRUE );
 
-	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
+	u_int8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ )
 	{
 		control->button[c] = control_create_button ( box, b_n[c][1], b_n[c][2], SIZE_ICONS );
 		gtk_widget_set_name ( GTK_WIDGET ( control->button[c] ), b_n[c][0] );

@@ -44,7 +44,7 @@ char * dir_open ( const char *path, GtkWindow *window )
 }
 
 // Returns a newly-allocated string holding the result. Free with free()
-static char * file_open_save ( const char *path, const char *file, const char *accept, const char *icon, uint8_t num, GtkWindow *window )
+static char * file_open_save ( const char *path, const char *file, const char *accept, const char *icon, u_int8_t num, GtkWindow *window )
 {
 	GtkFileChooserDialog *dialog = ( GtkFileChooserDialog *)gtk_file_chooser_dialog_new (
 		" ", window, num, "gtk-cancel", GTK_RESPONSE_CANCEL, accept, GTK_RESPONSE_ACCEPT, NULL );

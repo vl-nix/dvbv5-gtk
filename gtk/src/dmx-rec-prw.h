@@ -15,9 +15,9 @@
 #include <gtk/gtk.h>
 
 #ifndef LIGHT
-void dmx_prw_create ( uint8_t, uint8_t, uint16_t, uint16_t *, Monitor * );
+void dmx_prw_create ( u_int8_t, u_int8_t, u_int16_t, u_int16_t *, Monitor * );
 #endif
 
-void dmx_rec_create ( uint8_t, uint8_t, uint16_t, const char *, uint16_t *, Monitor * );
+void dmx_rec_create ( u_int8_t, u_int8_t, u_int16_t, const char *, u_int16_t *, Monitor * );
 
 #endif // DMX_REC_H

@@ -75,23 +75,23 @@ static void dvbv5_about ( Dvbv5 *dvbv5 )
 	gtk_widget_destroy ( GTK_WIDGET (dialog) );
 }
 
-static uint8_t dvbv5_get_val_togglebutton ( GtkCheckButton *checkbutton, gboolean debug )
+static u_int8_t dvbv5_get_val_togglebutton ( GtkCheckButton *checkbutton, gboolean debug )
 {
 	gboolean set = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( checkbutton ) );
 	const char *name = gtk_widget_get_name  ( GTK_WIDGET ( checkbutton ) );
 
-	uint8_t ret = ( set ) ? 1 : 0;
+	u_int8_t ret = ( set ) ? 1 : 0;
 
 	if ( debug ) g_message ( "%s:: %s | set value = %d ", __func__, name, ret );
 
 	return ret;
 }
 
-static uint8_t dvbv5_get_val_spinbutton ( GtkSpinButton *spinbutton, gboolean debug )
+static u_int8_t dvbv5_get_val_spinbutton ( GtkSpinButton *spinbutton, gboolean debug )
 {
 	gtk_spin_button_update ( spinbutton );
 
-	uint8_t val = (uint8_t)gtk_spin_button_get_value_as_int ( spinbutton );
+	u_int8_t val = (u_int8_t)gtk_spin_button_get_value_as_int ( spinbutton );
 	const char *name = gtk_widget_get_name  ( GTK_WIDGET ( spinbutton ) );
 
 	if ( debug ) g_message ( "%s:: %s | set value = %d ", __func__, name, val );
@@ -106,7 +106,7 @@ static void dvbv5_stats_clear ( Dvbv5 *dvbv5 )
 	level_set_sgn_snr  ( 0, "Signal", "Snr", 0, 0, FALSE, dvbv5->level );
 }
 
-static void dvbv5_stats_update ( uint32_t freq, uint32_t progs, GtkLabel *label )
+static void dvbv5_stats_update ( u_int32_t freq, u_int32_t progs, GtkLabel *label )
 {
 	char text[100];
 
@@ -154,7 +154,7 @@ static void dvbv5_set_file_size ( Dvbv5 *dvbv5 )
 
 void dvbv5_dmx_monitor_clear ( Dvbv5 *dvbv5 )
 {
-	uint8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
+	u_int8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
 	{
 		dvbv5->zap->monitor->id[c] = 0;
 		dvbv5->zap->monitor->bitrate[c] = 0;
@@ -163,9 +163,9 @@ void dvbv5_dmx_monitor_clear ( Dvbv5 *dvbv5 )
 	}
 }
 
-void dvbv5_dmx_monitor_stop_one ( uint16_t num, gboolean prw, gboolean rec, Dvbv5 *dvbv5 )
+void dvbv5_dmx_monitor_stop_one ( u_int16_t num, gboolean prw, gboolean rec, Dvbv5 *dvbv5 )
 {
-	uint8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
+	u_int8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
 	{
 		if ( dvbv5->zap->monitor->id[c] == num )
 		{
@@ -177,14 +177,14 @@ void dvbv5_dmx_monitor_stop_one ( uint16_t num, gboolean prw, gboolean rec, Dvbv
 
 static void dvbv5_dmx_monitor_stop ( Dvbv5 *dvbv5 )
 {
-	uint8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
+	u_int8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
 	{
 		dvbv5->zap->monitor->prw_status[c] = 2;
 		dvbv5->zap->monitor->rec_status[c] = 2;
 	}
 }
 
-static uint dvbv5_dmx_monitor_get_bitrate ( uint16_t num, gboolean base, gboolean prw, gboolean rec, Dvbv5 *dvbv5 )
+static uint dvbv5_dmx_monitor_get_bitrate ( u_int16_t num, gboolean base, gboolean prw, gboolean rec, Dvbv5 *dvbv5 )
 {
 	if ( base )
 	{
@@ -195,10 +195,10 @@ static uint dvbv5_dmx_monitor_get_bitrate ( uint16_t num, gboolean base, gboolea
 		return bitrate;
 	}
 
-	uint32_t bitrate = 0;
+	u_int32_t bitrate = 0;
 	gboolean set = FALSE;
 
-	uint8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
+	u_int8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
 	{
 		if ( dvbv5->zap->monitor->id[c] == num )
 		{
@@ -262,14 +262,14 @@ static void dvbv5_show_info ( Dvbv5 *dvbv5 )
 
 		if ( toggle_prw || toggle_rec )
 		{
-			uint bitrate = dvbv5_dmx_monitor_get_bitrate ( (uint16_t)num, FALSE, toggle_prw, toggle_rec, dvbv5 );
+			uint bitrate = dvbv5_dmx_monitor_get_bitrate ( (u_int16_t)num, FALSE, toggle_prw, toggle_rec, dvbv5 );
 			if ( bitrate ) gtk_list_store_set ( GTK_LIST_STORE ( model ), &iter, COL_PRW_BITR, bitrate, -1 );
 		}
 #endif
 	}
 }
 
-static void dvbv5_set_status ( uint32_t freq, Dvbv5 *dvbv5 )
+static void dvbv5_set_status ( u_int32_t freq, Dvbv5 *dvbv5 )
 {
 	dvbv5_stats_update ( freq, dvbv5->dvb->progs_scan, dvbv5->label_freq );
 
@@ -322,7 +322,7 @@ static gboolean dvbv5_dvb_fe_show_stats ( Dvbv5 *dvbv5 )
 	{
 		dvbv5_set_status ( dvbstat.freq, dvbv5 );
 
-		level_set_sgn_snr ( (uint8_t)dvbstat.qual, ( dvbstat.sgl_str ) ? dvbstat.sgl_str : "Signal", 
+		level_set_sgn_snr ( (u_int8_t)dvbstat.qual, ( dvbstat.sgl_str ) ? dvbstat.sgl_str : "Signal", 
 			( dvbstat.snr_str ) ? dvbstat.snr_str : "Snr", (double)dvbstat.sgl, (double)dvbstat.snr, dvbstat.fe_lock, dvbv5->level );
 	}
 	else
@@ -451,7 +451,7 @@ static void dvbv5_button_clicked_handler ( G_GNUC_UNUSED Control *control, const
 	const char *b_n[] = { "start", "stop", "mini", "quit" };
 	fp funcs[] = { dvbv5_clicked_start, dvbv5_clicked_stop, dvbv5_clicked_mini,  dvbv5_clicked_quit };
 
-	uint8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ ) { if ( g_str_has_prefix ( b_n[c], button ) ) { funcs[c] ( dvbv5 ); break; } }
+	u_int8_t c = 0; for ( c = 0; c < NUM_BUTTONS; c++ ) { if ( g_str_has_prefix ( b_n[c], button ) ) { funcs[c] ( dvbv5 ); break; } }
 }
 
 static void dvbv5_set_fe ( GtkToggleButton *button, Dvbv5 *dvbv5 )
@@ -596,12 +596,12 @@ static void dvbv5_spinbutton_changed_size_i ( GtkSpinButton *button, Dvbv5 *dvbv
 {
 	uint icon_size = (uint)gtk_spin_button_get_value_as_int ( button );
 
-	control_resize_icon ( (uint8_t)icon_size, dvbv5->control );
+	control_resize_icon ( (u_int8_t)icon_size, dvbv5->control );
 
 	settings_set_u ( icon_size, "icon-size", dvbv5->setting );
 }
 
-static GtkSpinButton * dvbv5_header_bar_create_spinbutton ( uint val, uint16_t min, uint16_t max, uint16_t step, const char *text, enum prefs prf, Dvbv5 *dvbv5 )
+static GtkSpinButton * dvbv5_header_bar_create_spinbutton ( uint val, u_int16_t min, u_int16_t max, u_int16_t step, const char *text, enum prefs prf, Dvbv5 *dvbv5 )
 {
 	GtkSpinButton *spinbutton = (GtkSpinButton *)gtk_spin_button_new_with_range ( min, max, step );
 	gtk_spin_button_set_value ( spinbutton, val );
@@ -670,7 +670,7 @@ static GtkPopover * dvbv5_popover_hbar ( Dvbv5 *dvbv5 )
 		{ "⏻", "dvb-quit",  dvbv5_header_bar_menu_quit  }
 	};
 
-	uint8_t c = 0; for ( c = 0; c < G_N_ELEMENTS ( data_n ); c++ )
+	u_int8_t c = 0; for ( c = 0; c < G_N_ELEMENTS ( data_n ); c++ )
 	{
 		GtkButton *button = control_create_button ( NULL, data_n[c].name, data_n[c].icon_u, 16 );
 		g_signal_connect ( button, "clicked", G_CALLBACK ( data_n[c].f ), dvbv5 );
@@ -719,7 +719,7 @@ static void dvbv5_set_prefs ( Dvbv5 *dvbv5 )
 
 	g_object_set ( gtk_settings_get_default(), "gtk-application-prefer-dark-theme", dark, NULL );
 
-	uint8_t set_sz = (uint8_t)( ( u_isz ) ? u_isz : SIZE_ICONS );
+	u_int8_t set_sz = (u_int8_t)( ( u_isz ) ? u_isz : SIZE_ICONS );
 	control_resize_icon ( set_sz, dvbv5->control );
 
 	if ( u_opc >= 40 ) gtk_widget_set_opacity ( GTK_WIDGET ( dvbv5->window ), ( (float)u_opc / 100) );

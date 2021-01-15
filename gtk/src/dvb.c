@@ -9,9 +9,9 @@
 
 #include "dvb.h"
 
-static uint8_t _get_delsys ( struct dvb_v5_fe_parms *parms )
+static u_int8_t _get_delsys ( struct dvb_v5_fe_parms *parms )
 {
-	uint8_t sys = SYS_UNDEFINED;
+	u_int8_t sys = SYS_UNDEFINED;
 
 	switch ( parms->current_sys )
 	{
@@ -55,7 +55,7 @@ static gpointer dvb_scan_thread ( Dvb *dvb_base )
 	g_mutex_init ( &dvb_base->mutex );
 
 	int count = 0, shift;
-	uint32_t freq = 0, sys = _get_delsys ( parms );
+	u_int32_t freq = 0, sys = _get_delsys ( parms );
 	enum dvb_sat_polarization pol;
 
 	dvb_file = dvb_read_file_format ( dvb_base->input_file, sys, dvb_base->input_format );
@@ -88,7 +88,7 @@ static gpointer dvb_scan_thread ( Dvb *dvb_base )
 	for ( entry = dvb_file->first_entry; entry != NULL; entry = entry->next )
 	{
 		struct dvb_v5_descriptors *dvb_scan_handler = NULL;
-		uint32_t stream_id;
+		u_int32_t stream_id;
 
 		if ( dvb_retrieve_entry_prop ( entry, DTV_FREQUENCY, &freq ) ) continue;
 
@@ -212,13 +212,13 @@ void dvb_scan_stop ( Dvb *dvb )
 	if ( dvb->dvb_scan ) dvb->thread_stop = 1;
 }
 
-static uint8_t dvb_zap_parse ( const char *file, const char *channel, uint8_t frm, struct dvb_v5_fe_parms *parms, uint16_t pids[], uint16_t apids[] )
+static u_int8_t dvb_zap_parse ( const char *file, const char *channel, u_int8_t frm, struct dvb_v5_fe_parms *parms, u_int16_t pids[], u_int16_t apids[] )
 {
 	struct dvb_file *dvb_file;
 	struct dvb_entry *entry;
 
-	uint8_t i = 0, j = 0;
-	uint32_t sys = _get_delsys ( parms );
+	u_int8_t i = 0, j = 0;
+	u_int32_t sys = _get_delsys ( parms );
 
 	dvb_file = dvb_read_file_format ( file, sys, frm );
 
@@ -244,7 +244,7 @@ static uint8_t dvb_zap_parse ( const char *file, const char *channel, uint8_t fr
 
 	if ( !entry )
 	{
-		uint32_t f, freq = (uint32_t)atoi ( channel );
+		u_int32_t f, freq = (u_int32_t)atoi ( channel );
 
 		if ( freq )
 		{
@@ -293,7 +293,7 @@ static uint8_t dvb_zap_parse ( const char *file, const char *channel, uint8_t fr
 			apids[j] = entry->audio_pid[j];
 		}
 
-		if ( j >= MAX_AUDIO ) pids[3] = MAX_AUDIO; else pids[3] = (uint16_t)entry->audio_pid_len;
+		if ( j >= MAX_AUDIO ) pids[3] = MAX_AUDIO; else pids[3] = (u_int16_t)entry->audio_pid_len;
 	}
 
 	dvb_retrieve_entry_prop (entry, DTV_DELIVERY_SYSTEM, &sys );
@@ -302,7 +302,7 @@ static uint8_t dvb_zap_parse ( const char *file, const char *channel, uint8_t fr
 	/* Copy data into parms */
 	for ( i = 0; i < entry->n_props; i++ )
 	{
-		uint32_t data = entry->props[i].u.data;
+		u_int32_t data = entry->props[i].u.data;
 
 		/* Don't change the delivery system */
 		if ( entry->props[i].cmd == DTV_DELIVERY_SYSTEM ) continue;
@@ -341,9 +341,9 @@ static uint8_t dvb_zap_parse ( const char *file, const char *channel, uint8_t fr
 	return 1;
 }
 
-static uint32_t dvb_zap_setup_frontend ( struct dvb_v5_fe_parms *parms )
+static u_int32_t dvb_zap_setup_frontend ( struct dvb_v5_fe_parms *parms )
 {
-	uint32_t freq = 0;
+	u_int32_t freq = 0;
 
 	int rc = dvb_fe_retrieve_parm ( parms, DTV_FREQUENCY, &freq );
 
@@ -356,8 +356,8 @@ static uint32_t dvb_zap_setup_frontend ( struct dvb_v5_fe_parms *parms )
 	return freq;
 }
 
-static uint8_t dvb_zap_set_pes_filter ( struct dvb_open_descriptor *fd, uint16_t pid, dmx_pes_type_t type, dmx_output_t dmx, 
-	uint32_t buf_size, const char *type_name, uint8_t debug )
+static u_int8_t dvb_zap_set_pes_filter ( struct dvb_open_descriptor *fd, u_int16_t pid, dmx_pes_type_t type, dmx_output_t dmx, 
+	u_int32_t buf_size, const char *type_name, u_int8_t debug )
 {
 	if ( debug ) g_message ( "  %s: DMX_SET_PES_FILTER %d (0x%04x)", type_name, pid, pid );
 
@@ -366,7 +366,7 @@ static uint8_t dvb_zap_set_pes_filter ( struct dvb_open_descriptor *fd, uint16_t
 	return 1;
 }
 
-static uint8_t dvb_zap_add_pat_pmt ( const char *demux_dev, uint16_t sid, uint8_t demux_descr, uint32_t bsz, Dvb *dvb )
+static u_int8_t dvb_zap_add_pat_pmt ( const char *demux_dev, u_int16_t sid, u_int8_t demux_descr, u_int32_t bsz, Dvb *dvb )
 {
 	int pmtpid = 0;
 
@@ -391,7 +391,7 @@ static uint8_t dvb_zap_add_pat_pmt ( const char *demux_dev, uint16_t sid, uint8_
 	dvb->pmt_fd = dvb_dev_open ( dvb->dvb_zap, demux_dev, O_RDWR );
 
 	if ( dvb->pmt_fd )
-		dvb_zap_set_pes_filter ( dvb->pmt_fd, (uint16_t)pmtpid, DMX_PES_OTHER, demux_descr, bsz, "PMT", dvb->debug );
+		dvb_zap_set_pes_filter ( dvb->pmt_fd, (u_int16_t)pmtpid, DMX_PES_OTHER, demux_descr, bsz, "PMT", dvb->debug );
 	else
 		return 0;
 
@@ -414,7 +414,7 @@ static void dvb_zap_set_dmx ( Dvb *dvb )
 		return;
 	}
 
-	uint32_t bsz = ( dvb->descr_num == DMX_OUT_TS_TAP || dvb->descr_num == 4 ) ? 64 * 1024 : 0;
+	u_int32_t bsz = ( dvb->descr_num == DMX_OUT_TS_TAP || dvb->descr_num == 4 ) ? 64 * 1024 : 0;
 
 	if ( dvb->pids[4] ) 
 		dvb_zap_add_pat_pmt ( dvb->demux_dev, dvb->pids[0], dvb->descr_num, bsz, dvb );
@@ -433,7 +433,7 @@ static void dvb_zap_set_dmx ( Dvb *dvb )
 
 	if ( dvb->pids[3] )
 	{
-		uint8_t j = 0; for ( j = 0; j < dvb->pids[3]; j++ )
+		u_int8_t j = 0; for ( j = 0; j < dvb->pids[3]; j++ )
 		{
 			dvb->audio_fds[j] = dvb_dev_open ( dvb->dvb_zap, dvb->demux_dev, O_RDWR );
 
@@ -449,7 +449,7 @@ static gboolean dvb_zap_check_fe_lock ( Dvb *dvb )
 {
 	if ( !dvb || !dvb->dvb_zap ) return FALSE;
 
-	static uint32_t time = 1;
+	static u_int32_t time = 1;
 	struct dvb_v5_fe_parms *parms = dvb->dvb_zap->fe_parms;
 
 	dvb_fe_get_stats ( parms ); // error is ignored
@@ -481,7 +481,7 @@ void dvb_zap_stop ( Dvb *dvb )
 		dvb->pmt_fd = NULL;
 		dvb->video_fd = NULL;
 
-		uint8_t j = 0; for ( j = 0; j < dvb->pids[3]; j++ )
+		u_int8_t j = 0; for ( j = 0; j < dvb->pids[3]; j++ )
 		{
 			if ( dvb->audio_fds[j] ) dvb_dev_close ( dvb->audio_fds[j] );
 			dvb->audio_fds[j] = NULL;
@@ -495,7 +495,7 @@ void dvb_zap_stop ( Dvb *dvb )
 	}
 }
 
-const char * dvb_zap ( const char *channel, uint8_t num, Dvb *dvb )
+const char * dvb_zap ( const char *channel, u_int8_t num, Dvb *dvb )
 {
 	dvb->dvb_zap = dvb_dev_alloc ();
 
@@ -550,7 +550,7 @@ const char * dvb_zap ( const char *channel, uint8_t num, Dvb *dvb )
 	}
 
 	// pids[6];  0 - sid, 1 - vpid, 2 - apid, 3 - apid_len, 4 - sid found, 5 - vpid found
-	uint8_t j = 0;
+	u_int8_t j = 0;
 	for ( j = 0; j < 6; j++ ) dvb->pids[j] = 0;
 	for ( j = 0; j < MAX_AUDIO; j++ ) { dvb->apids[j] = 0; dvb->audio_fds[j] = NULL; }
 
@@ -567,7 +567,7 @@ const char * dvb_zap ( const char *channel, uint8_t num, Dvb *dvb )
 		return "Zap parse failed.";
 	}
 
-	uint32_t freq = dvb_zap_setup_frontend ( parms );
+	u_int32_t freq = dvb_zap_setup_frontend ( parms );
 
 	if ( freq )
 	{
@@ -629,7 +629,7 @@ static int _frontend_stats ( struct dvb_v5_fe_parms *parms )
 	return 0;
 }
 
-static char * dvb_fe_get_stats_layer_str ( struct dvb_v5_fe_parms *parms, uint8_t cmd, const char *name, uint8_t layer, uint8_t debug )
+static char * dvb_fe_get_stats_layer_str ( struct dvb_v5_fe_parms *parms, u_int8_t cmd, const char *name, u_int8_t layer, u_int8_t debug )
 {
 	char *ret = NULL;
 
@@ -659,7 +659,7 @@ static char * dvb_fe_get_stats_layer_str ( struct dvb_v5_fe_parms *parms, uint8_
 	return ret;
 }
 
-static double dvb_fe_get_stats_layer_digits ( struct dvb_v5_fe_parms *parms, uint8_t cmd, const char *name, uint8_t layer, uint8_t debug )
+static double dvb_fe_get_stats_layer_digits ( struct dvb_v5_fe_parms *parms, u_int8_t cmd, const char *name, u_int8_t layer, u_int8_t debug )
 {
 	double ret = 0;
 
@@ -689,13 +689,13 @@ static double dvb_fe_get_stats_layer_digits ( struct dvb_v5_fe_parms *parms, uin
 	return ret;
 }
 
-static uint8_t dvb_fe_get_m_qual ( struct dvb_v5_fe_parms *parms, uint16_t vpid, uint bitrate, uint8_t debug )
+static u_int8_t dvb_fe_get_m_qual ( struct dvb_v5_fe_parms *parms, u_int16_t vpid, uint bitrate, u_int8_t debug )
 {
-	uint8_t qual = 0;
+	u_int8_t qual = 0;
 	enum fecap_scale_params scale;
 	float ber = dvb_fe_retrieve_ber ( parms, 0, &scale );
 
-	uint32_t allow_bits_error_good = ( bitrate ) ? bitrate / 10 : 200, allow_bits_error_ok = ( bitrate ) ? bitrate : 2000;
+	u_int32_t allow_bits_error_good = ( bitrate ) ? bitrate / 10 : 200, allow_bits_error_ok = ( bitrate ) ? bitrate : 2000;
 	if ( !vpid && !bitrate ) { allow_bits_error_good = 20; allow_bits_error_ok = 200; } // Radio
 
 	if ( debug ) g_message ( "%s:: ber = %.0f | abe_good = %d | abe_ok = %d ", __func__, ber, allow_bits_error_good, allow_bits_error_ok );
@@ -707,7 +707,7 @@ static uint8_t dvb_fe_get_m_qual ( struct dvb_v5_fe_parms *parms, uint16_t vpid,
 	return qual;
 }
 
-uint8_t dvb_fe_get_is_satellite ( uint8_t delsys )
+u_int8_t dvb_fe_get_is_satellite ( u_int8_t delsys )
 {
 	switch ( delsys )
 	{
@@ -737,7 +737,7 @@ DvbStat dvb_fe_stat_get ( uint bitrate, Dvb *dvb )
 		return dvbstat;
 	}
 
-	uint32_t freq = 0, qual = 0;
+	u_int32_t freq = 0, qual = 0;
 	gboolean fe_lock = FALSE;
 
 	fe_status_t status;
@@ -750,7 +750,7 @@ DvbStat dvb_fe_stat_get ( uint bitrate, Dvb *dvb )
 
 	if ( qual == 0 && fe_lock && dvb->dvb_zap ) qual = dvb_fe_get_m_qual ( parms, dvb->pids[1], bitrate, dvb->debug );
 
-	uint8_t layer = 0;
+	u_int8_t layer = 0;
 	char *sgl_gs = NULL, *snr_gs = NULL;
 	double sgl_gd = 0, snr_gd = 0;
 
@@ -773,7 +773,7 @@ DvbStat dvb_fe_stat_get ( uint bitrate, Dvb *dvb )
 	dvbstat.freq /= ( dvb_fe_is_satellite ( parms->current_sys ) ) ? 1000 : 1000000;
 
 /*
-	uint32_t sgl = 0, snr = 0;
+	u_int32_t sgl = 0, snr = 0;
 	dvb_fe_retrieve_stats ( parms, DTV_STAT_CNR, &snr );
 	dvb_fe_retrieve_stats ( parms, DTV_STAT_SIGNAL_STRENGTH, &sgl );
 */

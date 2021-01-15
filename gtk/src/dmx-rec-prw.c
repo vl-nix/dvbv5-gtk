@@ -32,7 +32,7 @@ struct _DmxRec
 {
 	int dmx_fd;
 	int rec_fd;
-	uint16_t id;
+	u_int16_t id;
 
 	GMutex mutex;
 	Monitor *monitor;
@@ -44,8 +44,8 @@ typedef struct _DmxPrw DmxPrw;
 struct _DmxPrw
 {
 	int dmx_fd;
-	uint16_t id;
-	uint16_t vpid;
+	u_int16_t id;
+	u_int16_t vpid;
 
 	GMutex mutex;
 	Monitor *monitor;
@@ -57,14 +57,14 @@ static gpointer dmx_rec_thread ( DmxRec *dmx_rec )
 	g_mutex_init ( &dmx_rec->mutex );
 
 	gboolean stop = FALSE;
-	uint8_t buf[BUF_SIZE];
+	u_int8_t buf[BUF_SIZE];
 	ssize_t r = 0, w = 0;
 
-	uint32_t total = 0;
+	u_int32_t total = 0;
 	struct timespec mt1, mt2;
 	clock_gettime ( CLOCK_MONOTONIC, &mt1 );
 
-	uint8_t debug = ( g_getenv ( "DVB_DEBUG" ) ) ? 1 : 0;
+	u_int8_t debug = ( g_getenv ( "DVB_DEBUG" ) ) ? 1 : 0;
 
 	struct pollfd pfd;
 	pfd.fd = dmx_rec->dmx_fd;
@@ -105,7 +105,7 @@ static gpointer dmx_rec_thread ( DmxRec *dmx_rec )
 
 		g_mutex_lock ( &dmx_rec->mutex );
 
-		uint8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
+		u_int8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
 		{
 			if ( dmx_rec->monitor->id[c] == dmx_rec->id && dmx_rec->monitor->rec_status[c] == 2 )
 			{
@@ -121,20 +121,20 @@ static gpointer dmx_rec_thread ( DmxRec *dmx_rec )
 
 		if ( stop ) break;
 
-		total += (uint32_t)r;
+		total += (u_int32_t)r;
 		clock_gettime ( CLOCK_MONOTONIC, &mt2 );
 
 		if ( mt2.tv_sec > mt1.tv_sec )
 		{
 			if ( debug )
 			{
-				uint16_t t_ms = (uint16_t)( ( mt2.tv_sec * 1000 + mt2.tv_nsec / 1000000 ) - ( mt1.tv_sec * 1000 + mt1.tv_nsec / 1000000 ) );
+				u_int16_t t_ms = (u_int16_t)( ( mt2.tv_sec * 1000 + mt2.tv_nsec / 1000000 ) - ( mt1.tv_sec * 1000 + mt1.tv_nsec / 1000000 ) );
 				g_message ( "Rec:: Id %u ( %u ms ) %u Kbps", dmx_rec->id, t_ms, total / 128 );
 			}
 
 			g_mutex_lock ( &dmx_rec->mutex );
 
-			uint8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
+			u_int8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
 			{
 				if ( dmx_rec->monitor->id[c] == dmx_rec->id || dmx_rec->monitor->bitrate[c] == 0 )
 				{
@@ -163,7 +163,7 @@ static gpointer dmx_rec_thread ( DmxRec *dmx_rec )
 	return NULL;
 }
 
-void dmx_rec_create ( uint8_t a, uint8_t d, uint16_t id, const char *rec, uint16_t pids[], Monitor *monitor )
+void dmx_rec_create ( u_int8_t a, u_int8_t d, u_int16_t id, const char *rec, u_int16_t pids[], Monitor *monitor )
 {
 	struct dmx_pes_filter_params f;
 
@@ -204,7 +204,7 @@ void dmx_rec_create ( uint8_t a, uint8_t d, uint16_t id, const char *rec, uint16
 		return;
 	}
 
-	uint8_t i = 0; for ( i = 1; i < pids[4]; i++ )
+	u_int8_t i = 0; for ( i = 1; i < pids[4]; i++ )
 	{
 		if ( pids[i] == 0 ) continue;
 
@@ -240,14 +240,14 @@ static gpointer dmx_prw_thread ( DmxPrw *dmx_prw )
 	g_mutex_init ( &dmx_prw->mutex );
 
 	gboolean stop = FALSE;
-	uint8_t buf[BUF_SIZE];
+	u_int8_t buf[BUF_SIZE];
 	ssize_t r = 0, w = 0;
 
-	uint32_t total = 0;
+	u_int32_t total = 0;
 	struct timespec mt1, mt2;
 	clock_gettime ( CLOCK_MONOTONIC, &mt1 );
 
-	uint8_t debug = ( g_getenv ( "DVB_DEBUG" ) ) ? 1 : 0;
+	u_int8_t debug = ( g_getenv ( "DVB_DEBUG" ) ) ? 1 : 0;
 
 	int pipefd[2];
 	if ( pipe ( pipefd ) == -1 )
@@ -300,7 +300,7 @@ static gpointer dmx_prw_thread ( DmxPrw *dmx_prw )
 
 		g_mutex_lock ( &dmx_prw->mutex );
 
-		uint8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
+		u_int8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
 		{
 			if ( dmx_prw->monitor->id[c] == dmx_prw->id && dmx_prw->monitor->prw_status[c] == 2 )
 			{
@@ -316,20 +316,20 @@ static gpointer dmx_prw_thread ( DmxPrw *dmx_prw )
 
 		if ( stop ) break;
 
-		total += (uint32_t)r;
+		total += (u_int32_t)r;
 		clock_gettime ( CLOCK_MONOTONIC, &mt2 );
 
 		if ( mt2.tv_sec > mt1.tv_sec )
 		{
 			if ( debug )
 			{
-				uint16_t t_ms = (uint16_t)( ( mt2.tv_sec * 1000 + mt2.tv_nsec / 1000000 ) - ( mt1.tv_sec * 1000 + mt1.tv_nsec / 1000000 ) );
+				u_int16_t t_ms = (u_int16_t)( ( mt2.tv_sec * 1000 + mt2.tv_nsec / 1000000 ) - ( mt1.tv_sec * 1000 + mt1.tv_nsec / 1000000 ) );
 				g_message ( "Prw:: Id %u ( %u ms ) %u Kbps ", dmx_prw->id, t_ms, total / 128 );
 			}
 
 			g_mutex_lock ( &dmx_prw->mutex );
 
-			uint8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
+			u_int8_t c = 0; for ( c = 0; c < MAX_MONITOR; c++ )
 			{
 				if ( dmx_prw->monitor->id[c] == dmx_prw->id || dmx_prw->monitor->bitrate[c] == 0 )
 				{
@@ -363,7 +363,7 @@ static gpointer dmx_prw_thread ( DmxPrw *dmx_prw )
 	return NULL;
 }
 
-void dmx_prw_create ( uint8_t a, uint8_t d, uint16_t id, uint16_t pids[], Monitor *monitor )
+void dmx_prw_create ( u_int8_t a, u_int8_t d, u_int16_t id, u_int16_t pids[], Monitor *monitor )
 {
 	struct dmx_pes_filter_params f;
 
@@ -393,7 +393,7 @@ void dmx_prw_create ( uint8_t a, uint8_t d, uint16_t id, uint16_t pids[], Monito
 		return;
 	}
 
-	uint8_t i = 0; for ( i = 1; i < pids[4]; i++ )
+	u_int8_t i = 0; for ( i = 1; i < pids[4]; i++ )
 	{
 		if ( pids[i] == 0 ) continue;
 

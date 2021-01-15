@@ -29,7 +29,7 @@ void tcpserver_destroy ( TcpServer * );
 
 void tcpserver_stop   ( TcpServer * );
 void tcpserver_start  ( TcpServer * );
-void tcpserver_set ( TcpServer *, const char *, uint16_t, const char * );
+void tcpserver_set ( TcpServer *, const char *, u_int16_t, const char * );
 
 
 typedef struct _Record Record;
@@ -73,7 +73,7 @@ struct _PlayerPipe
 	GstElement *aqueue2;
 };
 
-PlayerPipe * player_pipe_new ( uint16_t );
+PlayerPipe * player_pipe_new ( u_int16_t );
 void player_pipe_destroy ( PlayerPipe * );
 
 void player_pipe_stop  ( PlayerPipe * );

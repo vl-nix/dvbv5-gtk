@@ -18,10 +18,10 @@ typedef struct _Monitor Monitor;
 
 struct _Monitor
 {
-	uint16_t id[MAX_MONITOR];
-	uint32_t bitrate[MAX_MONITOR];
-	uint8_t  prw_status[MAX_MONITOR];
-	uint8_t  rec_status[MAX_MONITOR];
+	u_int16_t id[MAX_MONITOR];
+	u_int32_t bitrate[MAX_MONITOR];
+	u_int8_t  prw_status[MAX_MONITOR];
+	u_int8_t  rec_status[MAX_MONITOR];
 };
 
 enum cols_n
@@ -50,7 +50,7 @@ typedef struct _OutDemux OutDemux;
 
 struct _OutDemux
 {
-	uint8_t descr_num;
+	u_int8_t descr_num;
 	const char *name;
 };
 
@@ -81,7 +81,7 @@ struct _Zap
 	ulong prw_signal_id, rec_signal_id, stm_signal_id;
 
 	char *host;
-	uint16_t port;
+	u_int16_t port;
 
 	Monitor *monitor;
 };
@@ -90,9 +90,9 @@ GType zap_get_type ( void );
 
 Zap * zap_new ( void );
 
-uint8_t zap_get_dmx ( uint8_t );
+u_int8_t zap_get_dmx ( u_int8_t );
 
-void zap_treeview_append ( const char *, uint16_t, uint16_t, uint16_t, uint32_t, Zap * );
+void zap_treeview_append ( const char *, u_int16_t, u_int16_t, u_int16_t, u_int32_t, Zap * );
 
 void zap_stop_toggled_all ( Zap * );
 

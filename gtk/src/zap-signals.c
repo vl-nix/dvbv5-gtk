@@ -40,8 +40,8 @@ static gboolean zap_signal_check_fe_lock ( Dvbv5 *dvbv5 )
 
 static gboolean zap_signal_check_dmx_out ( Dvbv5 *dvbv5 )
 {
-	uint8_t num_dmx = (uint8_t)gtk_combo_box_get_active ( GTK_COMBO_BOX ( dvbv5->zap->combo_dmx ) );
-	uint8_t descr_num = zap_get_dmx ( num_dmx );
+	u_int8_t num_dmx = (u_int8_t)gtk_combo_box_get_active ( GTK_COMBO_BOX ( dvbv5->zap->combo_dmx ) );
+	u_int8_t descr_num = zap_get_dmx ( num_dmx );
 
 	if ( descr_num == DMX_OUT_TS_TAP || descr_num == DMX_OUT_ALL_PIDS ) return TRUE;
 
@@ -104,7 +104,7 @@ static void zap_dvr_stream_entry_changed_port ( GtkEntry *entry, Dvbv5 *dvbv5 )
 {
 	const char *text = gtk_entry_get_text ( entry );
 
-	dvbv5->zap->port = (uint16_t)atoi ( text );
+	dvbv5->zap->port = (u_int16_t)atoi ( text );
 }
 
 static void zap_dvr_stream_window_quit ( G_GNUC_UNUSED GtkWindow *window, Dvbv5 *dvbv5 )
@@ -324,8 +324,8 @@ static void zap_signal_trw_row_act ( GtkTreeView *tree_view, GtkTreePath *path, 
 			g_autofree char *channel = NULL;
 			gtk_tree_model_get ( model, &iter, COL_CHAHHEL, &channel, -1 );
 
-			uint8_t num_dmx = (uint8_t)gtk_combo_box_get_active ( GTK_COMBO_BOX ( dvbv5->zap->combo_dmx ) );
-			uint8_t descr_num = zap_get_dmx ( num_dmx );
+			u_int8_t num_dmx = (u_int8_t)gtk_combo_box_get_active ( GTK_COMBO_BOX ( dvbv5->zap->combo_dmx ) );
+			u_int8_t descr_num = zap_get_dmx ( num_dmx );
 
 			const char *error = dvb_zap ( channel, descr_num, dvbv5->dvb );
 
@@ -368,11 +368,11 @@ gboolean zap_signal_parse_dvb_file ( const char *file, Dvbv5 *dvbv5 )
 
 	for ( entry = dvb_file->first_entry; entry != NULL; entry = entry->next )
 	{
-		uint32_t f = 0, delsys = SYS_UNDEFINED;;
+		u_int32_t f = 0, delsys = SYS_UNDEFINED;;
 		dvb_retrieve_entry_prop ( entry, DTV_FREQUENCY, &f );
 		dvb_retrieve_entry_prop ( entry, DTV_DELIVERY_SYSTEM, &delsys );
 
-		uint8_t is_sat = dvb_fe_get_is_satellite ( (uint8_t)delsys );
+		u_int8_t is_sat = dvb_fe_get_is_satellite ( (u_int8_t)delsys );
 		f /= ( is_sat ) ? 1000 : 1000000;
 
 		if ( entry->channel  ) zap_treeview_append ( entry->channel, entry->service_id,
@@ -459,13 +459,13 @@ static void zap_signal_toggled_dmx_prw ( Zap *zap, const char *path_str, Dvbv5 *
 		gtk_tree_model_get ( model, &iter, COL_VPID, &vpid, -1 );
 		gtk_tree_model_get ( model, &iter, COL_APID, &apid, -1 );
 
-		uint16_t pids[] = { 0, (uint16_t)sid, (uint16_t)vpid, (uint16_t)apid, 4 };
+		u_int16_t pids[] = { 0, (u_int16_t)sid, (u_int16_t)vpid, (u_int16_t)apid, 4 };
 
-		dmx_prw_create ( dvbv5->dvb->adapter, dvbv5->dvb->demux, (uint16_t)num, pids, zap->monitor );
+		dmx_prw_create ( dvbv5->dvb->adapter, dvbv5->dvb->demux, (u_int16_t)num, pids, zap->monitor );
 	}
 	else
 	{
-		dvbv5_dmx_monitor_stop_one ( (uint16_t)num, TRUE, FALSE, dvbv5 );
+		dvbv5_dmx_monitor_stop_one ( (u_int16_t)num, TRUE, FALSE, dvbv5 );
 		gtk_list_store_set ( GTK_LIST_STORE ( model ), &iter, COL_PRW_BITR, 0, -1 );
 	}
 
@@ -506,7 +506,7 @@ static void zap_signal_toggled_dmx_rec ( Zap *zap, const char *path_str, Dvbv5 *
 		gtk_tree_model_get ( model, &iter, COL_VPID, &vpid, -1 );
 		gtk_tree_model_get ( model, &iter, COL_APID, &apid, -1 );
 
-		uint16_t pids[] = { 0, (uint16_t)sid, (uint16_t)vpid, (uint16_t)apid, 4 };
+		u_int16_t pids[] = { 0, (u_int16_t)sid, (u_int16_t)vpid, (u_int16_t)apid, 4 };
 
 		char dmxrec[PATH_MAX];
 
@@ -517,14 +517,14 @@ static void zap_signal_toggled_dmx_rec ( Zap *zap, const char *path_str, Dvbv5 *
 		sprintf ( dmxrec, "%s/%s-%s", g_get_home_dir (), channel, dtime );
 #endif
 
-		dmx_rec_create ( dvbv5->dvb->adapter, dvbv5->dvb->demux, (uint16_t)num, dmxrec, pids, zap->monitor );
+		dmx_rec_create ( dvbv5->dvb->adapter, dvbv5->dvb->demux, (u_int16_t)num, dmxrec, pids, zap->monitor );
 
 		gtk_list_store_set ( GTK_LIST_STORE ( model ), &iter, COL_REC_FILE, dmxrec, -1 );
 	}
 #ifndef LIGHT
 	else
 	{
-		dvbv5_dmx_monitor_stop_one ( (uint16_t)num, FALSE, TRUE, dvbv5 );
+		dvbv5_dmx_monitor_stop_one ( (u_int16_t)num, FALSE, TRUE, dvbv5 );
 		gtk_list_store_set ( GTK_LIST_STORE ( model ), &iter, COL_PRW_BITR, 0, -1 );
 	}
 #endif

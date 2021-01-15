@@ -20,7 +20,7 @@ struct _Level
 
 G_DEFINE_TYPE ( Level, level, GTK_TYPE_BOX )
 
-void level_set_sgn_snr ( uint8_t qual, char *sgl, char *snr, double sgl_gd, double snr_gd, gboolean fe_lock, Level *level )
+void level_set_sgn_snr ( u_int8_t qual, char *sgl, char *snr, double sgl_gd, double snr_gd, gboolean fe_lock, Level *level )
 {
 	gtk_progress_bar_set_fraction ( level->bar_sgn, sgl_gd / 100 );
 	gtk_progress_bar_set_fraction ( level->bar_snr, snr_gd / 100 );

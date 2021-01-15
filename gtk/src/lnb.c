@@ -36,7 +36,7 @@ typedef struct _DvbDescrLnb DvbDescrLnb;
 
 struct _DvbDescrLnb
 {
-	uint8_t descr_num;
+	u_int8_t descr_num;
 	const char *abr;
 	const char *name;
 	const char *desc;
@@ -66,7 +66,7 @@ const DvbDescrLnb dvb_descr_lnb_type_n[] =
 
 void lnb_set_name_combo ( GtkComboBoxText *combo_lnb )
 {
-	uint8_t c = 0; for ( c = 0; c < LNB_ALL; c++ )
+	u_int8_t c = 0; for ( c = 0; c < LNB_ALL; c++ )
 	{
 		gtk_combo_box_text_append ( combo_lnb, dvb_descr_lnb_type_n[c].name, dvb_descr_lnb_type_n[c].abr );
 	}
@@ -75,7 +75,7 @@ void lnb_set_name_combo ( GtkComboBoxText *combo_lnb )
 
 const char * lnb_get_desc ( const char *lnb_name )
 {
-	uint8_t c = 0; for ( c = 0; c < LNB_ALL; c++ )
+	u_int8_t c = 0; for ( c = 0; c < LNB_ALL; c++ )
 	{
 		if ( g_str_has_prefix ( dvb_descr_lnb_type_n[c].name, lnb_name ) ) return dvb_descr_lnb_type_n[c].desc;
 	}

@@ -15,7 +15,7 @@ static void scan_signal_set_adapter ( GtkSpinButton *button, Dvbv5 *dvbv5 )
 {
 	gtk_spin_button_update ( button );
 
-	dvbv5->dvb->adapter = (uint8_t)gtk_spin_button_get_value_as_int ( button );
+	dvbv5->dvb->adapter = (u_int8_t)gtk_spin_button_get_value_as_int ( button );
 
 	g_autofree char *name = dvb_info_get_dvb_name ( dvbv5->dvb );
 
@@ -26,7 +26,7 @@ static void scan_signal_set_frontend ( GtkSpinButton *button, Dvbv5 *dvbv5 )
 {
 	gtk_spin_button_update ( button );
 
-	dvbv5->dvb->frontend = (uint8_t)gtk_spin_button_get_value_as_int ( button );
+	dvbv5->dvb->frontend = (u_int8_t)gtk_spin_button_get_value_as_int ( button );
 
 	g_autofree char *name = dvb_info_get_dvb_name ( dvbv5->dvb );
 
@@ -56,7 +56,7 @@ static void scan_signal_file_save ( GtkEntry *entry, GtkEntryIconPosition icon_p
 
 static void scan_signal_set_format_inp ( GtkComboBoxText *combo_box, Dvbv5 *dvbv5 )
 {
-	uint8_t inp[] = { FILE_DVBV5, FILE_CHANNEL };
+	u_int8_t inp[] = { FILE_DVBV5, FILE_CHANNEL };
 
 	int num = gtk_combo_box_get_active ( GTK_COMBO_BOX ( combo_box ) );
 
@@ -64,7 +64,7 @@ static void scan_signal_set_format_inp ( GtkComboBoxText *combo_box, Dvbv5 *dvbv
 }
 static void scan_signal_set_format_out ( GtkComboBoxText *combo_box, Dvbv5 *dvbv5 )
 {
-	uint8_t out[] = { FILE_DVBV5, FILE_VDR, FILE_CHANNEL, FILE_ZAP };
+	u_int8_t out[] = { FILE_DVBV5, FILE_VDR, FILE_CHANNEL, FILE_ZAP };
 
 	int num = gtk_combo_box_get_active ( GTK_COMBO_BOX ( combo_box ) );
 

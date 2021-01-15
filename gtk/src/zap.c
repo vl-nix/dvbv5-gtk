@@ -24,7 +24,7 @@ const OutDemux out_demux_n[] =
 
 G_DEFINE_TYPE ( Zap, zap, GTK_TYPE_BOX )
 
-uint8_t zap_get_dmx ( uint8_t num_dmx )
+u_int8_t zap_get_dmx ( u_int8_t num_dmx )
 {
 	return out_demux_n[num_dmx].descr_num;
 }
@@ -81,13 +81,13 @@ void zap_stop_toggled_all ( Zap *zap )
 	zap_treeview_stop_dmx_rec_all_toggled ( zap );
 }
 
-void zap_treeview_append ( const char *channel, uint16_t sid, uint16_t apid, uint16_t vpid, uint32_t freq, Zap *zap )
+void zap_treeview_append ( const char *channel, u_int16_t sid, u_int16_t apid, u_int16_t vpid, u_int32_t freq, Zap *zap )
 {
 	GtkTreeIter iter;
 	GtkTreeModel *model = gtk_tree_view_get_model ( zap->treeview );
 
 	int ind = gtk_tree_model_iter_n_children ( model, NULL );
-	if ( ind >= UINT16_MAX ) return;
+	if ( ind >= UINT_MAX ) return;
 
 	gtk_list_store_append ( GTK_LIST_STORE ( model ), &iter );
 	gtk_list_store_set    ( GTK_LIST_STORE ( model ), &iter,
@@ -129,7 +129,7 @@ static GtkScrolledWindow * zap_create_treeview_scroll ( Zap *zap )
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *column;
 
-	struct Column { const char *name; const char *type; uint8_t num; } column_n[] =
+	struct Column { const char *name; const char *type; u_int8_t num; } column_n[] =
 	{
 		{ "Num",        "text",   COL_NUM },
 		{ "Prw",        "active", COL_PRW },
@@ -144,7 +144,7 @@ static GtkScrolledWindow * zap_create_treeview_scroll ( Zap *zap )
 		{ "File rec",   "text",   COL_REC_FILE }
 	};
 
-	uint8_t c = 0; for ( c = 0; c < G_N_ELEMENTS ( column_n ); c++ )
+	u_int8_t c = 0; for ( c = 0; c < G_N_ELEMENTS ( column_n ); c++ )
 	{
 #ifdef LIGHT
 		if ( c == COL_PRW || c == COL_PRW_BITR ) continue;
@@ -171,9 +171,9 @@ static GtkScrolledWindow * zap_create_treeview_scroll ( Zap *zap )
 	return scroll;
 }
 
-static void zap_combo_dmx_add ( uint8_t n_elm, Zap *zap )
+static void zap_combo_dmx_add ( u_int8_t n_elm, Zap *zap )
 {
-	uint8_t c = 0; for ( c = 0; c < n_elm; c++ )
+	u_int8_t c = 0; for ( c = 0; c < n_elm; c++ )
 		gtk_combo_box_text_append_text ( zap->combo_dmx, out_demux_n[c].name );
 
 	gtk_combo_box_set_active ( GTK_COMBO_BOX ( zap->combo_dmx ), 2 );

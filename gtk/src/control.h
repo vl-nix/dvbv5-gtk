@@ -20,11 +20,11 @@ G_DECLARE_FINAL_TYPE ( Control, control, CONTROL, BOX, GtkBox )
 
 Control * control_new ( void );
 
-void control_resize_icon ( uint8_t , Control * );
+void control_resize_icon ( u_int8_t , Control * );
 
 void control_button_set_sensitive ( const char *, gboolean, Control * );
 
-GtkButton * control_create_button ( GtkBox *, const char *, const char *, uint8_t );
+GtkButton * control_create_button ( GtkBox *, const char *, const char *, u_int8_t );
 
 gboolean control_check_icon_theme ( const char * );
 

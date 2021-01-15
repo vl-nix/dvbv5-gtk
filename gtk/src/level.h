@@ -17,6 +17,6 @@ G_DECLARE_FINAL_TYPE ( Level, level, LEVEL, BOX, GtkBox )
 
 Level * level_new ( void );
 
-void level_set_sgn_snr ( uint8_t, char *, char *, double, double, gboolean, Level * );
+void level_set_sgn_snr ( u_int8_t, char *, char *, double, double, gboolean, Level * );
 
 #endif

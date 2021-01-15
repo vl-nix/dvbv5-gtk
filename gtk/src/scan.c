@@ -28,7 +28,7 @@ static GtkLabel * scan_create_label ( const char *text )
 	return label;
 }
 
-static GtkSpinButton * scan_create_spinbutton ( int16_t min, int16_t max, uint8_t step, int16_t value, uint8_t num, const char *name, Scan *scan )
+static GtkSpinButton * scan_create_spinbutton ( int16_t min, int16_t max, u_int8_t step, int16_t value, u_int8_t num, const char *name, Scan *scan )
 {
 	GtkSpinButton *spinbutton = (GtkSpinButton *)gtk_spin_button_new_with_range ( min, max, step );
 	gtk_widget_set_name ( GTK_WIDGET ( spinbutton ), name );
@@ -41,7 +41,7 @@ static GtkSpinButton * scan_create_spinbutton ( int16_t min, int16_t max, uint8_
 	return spinbutton;
 }
 
-static GtkCheckButton * scan_create_checkbutton ( int16_t value, uint8_t num, const char *name, Scan *scan )
+static GtkCheckButton * scan_create_checkbutton ( int16_t value, u_int8_t num, const char *name, Scan *scan )
 {
 	GtkCheckButton *checkbutton = (GtkCheckButton *)gtk_check_button_new ();
 	gtk_widget_set_name ( GTK_WIDGET ( checkbutton ), name );
@@ -54,9 +54,9 @@ static GtkCheckButton * scan_create_checkbutton ( int16_t value, uint8_t num, co
 	return checkbutton;
 }
 
-static void scan_append_text_combo_box ( GtkComboBoxText *combo_box, const char *text[], uint8_t indx, int active )
+static void scan_append_text_combo_box ( GtkComboBoxText *combo_box, const char *text[], u_int8_t indx, int active )
 {
-	uint8_t c = 0; for ( c = 0; c < indx; c++ )
+	u_int8_t c = 0; for ( c = 0; c < indx; c++ )
 		gtk_combo_box_text_append_text ( combo_box, text[c] );
 
 	gtk_combo_box_set_active ( GTK_COMBO_BOX ( combo_box ), active );
@@ -95,7 +95,7 @@ static GtkComboBoxText * scan_create_combo_box_lna ( Scan *scan )
 	return scan->combo_lna;
 }
 
-static GtkComboBoxText * scan_create_combo_box_format ( uint8_t num, Scan *scan )
+static GtkComboBoxText * scan_create_combo_box_format ( u_int8_t num, Scan *scan )
 {
 	const char *inp[] = { "DVBV5", "CHANNEL" };
 	const char *out[] = { "DVBV5", "VDR", "CHANNEL", "ZAP" };
@@ -110,7 +110,7 @@ static GtkComboBoxText * scan_create_combo_box_format ( uint8_t num, Scan *scan 
 	return combo_box;
 }
 
-static GtkBox * scan_set_initial_output_file ( const char *file, uint8_t num, Scan *scan )
+static GtkBox * scan_set_initial_output_file ( const char *file, u_int8_t num, Scan *scan )
 {
 	GtkBox *v_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 0 );
 	gtk_widget_set_visible ( GTK_WIDGET ( v_box ), TRUE );
@@ -155,7 +155,7 @@ static void scan_create ( Scan *scan )
 		{ "LNA",   	-1, "Wait DISEqC",  0	}
 	};
 
-	uint8_t d = 0, spin_num = 0, toggle_num = 0;
+	u_int8_t d = 0, spin_num = 0, toggle_num = 0;
 	for ( d = 0; d < G_N_ELEMENTS ( data_n ); d++ )
 	{
 		gtk_grid_attach ( GTK_GRID ( grid ), GTK_WIDGET ( scan_create_label ( data_n[d].text ) ), 0, d, 1, 1 );

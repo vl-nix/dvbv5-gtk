@@ -84,6 +84,6 @@ gboolean zap_signal_parse_dvb_file ( const char *, Dvbv5 * );
 void dvbv5_message_dialog ( const char *, const char *, GtkMessageType, GtkWindow * );
 
 void dvbv5_dmx_monitor_clear ( Dvbv5 * );
-void dvbv5_dmx_monitor_stop_one ( uint16_t, gboolean, gboolean, Dvbv5 * );
+void dvbv5_dmx_monitor_stop_one ( u_int16_t, gboolean, gboolean, Dvbv5 * );
 
 #endif // GTK_TYPE_APPLICATION
