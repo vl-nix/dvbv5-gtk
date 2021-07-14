@@ -10,6 +10,8 @@
 #include "status.h"
 #include "level.h"
 
+#define MAX_STATS 4 // MAX_DTV_STATS
+
 struct _Status
 {
 	GtkBox parent_instance;
@@ -19,14 +21,14 @@ struct _Status
 	GtkLabel *dvb_name;
 	GtkLabel *freq_scan;
 	GtkLabel *dvr_record;
-	GtkLabel *org_status[4]; // MAX_DTV_STATS
+	GtkLabel *org_status[MAX_STATS];
 };
 
 G_DEFINE_TYPE ( Status, status, GTK_TYPE_BOX )
 
 static void status_handler_org ( Status *status, int num, char *text )
 {
-	const char *label[4] = { "Layer A: ", "Layer B: ","Layer C: ", "Layer D: " };
+	const char *label[MAX_STATS] = { "Layer A: ", "Layer B: ","Layer C: ", "Layer D: " };
 
 	char set_text[256];
 	sprintf ( set_text, "%s  %s ", label[num], text );
@@ -65,9 +67,9 @@ static void status_clicked_stop ( G_GNUC_UNUSED GtkButton *button, Status *statu
 	gtk_label_set_text ( status->freq_scan,  "" );
 	gtk_label_set_text ( status->dvr_record, "" );
 
-	const char *label[4] = { "Layer A: ", "Layer B: ","Layer C: ", "Layer D: " };
+	const char *label[MAX_STATS] = { "Layer A: ", "Layer B: ","Layer C: ", "Layer D: " };
 
-	uint c = 0; for ( c = 0; c < 4; c++ ) // MAX_DTV_STATS
+	uint c = 0; for ( c = 0; c < MAX_STATS; c++ )
 	{
 		gtk_label_set_text ( status->org_status[c], label[c] );
 	}
@@ -87,7 +89,7 @@ static void status_sw_layers ( GObject *gobject, G_GNUC_UNUSED GParamSpec *pspec
 {
 	gboolean state = gtk_switch_get_state ( GTK_SWITCH ( gobject ) );
 
-	uint c = 0; for ( c = 0; c < 4; c++ ) // MAX_DTV_STATS
+	uint c = 0; for ( c = 0; c < MAX_STATS; c++ )
 	{
 		gtk_widget_set_visible ( GTK_WIDGET ( status->org_status[c] ), state );
 	}
@@ -127,9 +129,9 @@ static void status_init ( Status *status )
 
 	gtk_box_pack_start ( box, GTK_WIDGET ( h_box ), FALSE, FALSE, 5 );
 
-	const char *label[4] = { "Layer A: ", "Layer B: ","Layer C: ", "Layer D: " };
+	const char *label[MAX_STATS] = { "Layer A: ", "Layer B: ","Layer C: ", "Layer D: " };
 
-	uint c = 0; for ( c = 0; c < 4; c++ ) // MAX_DTV_STATS
+	uint c = 0; for ( c = 0; c < MAX_STATS; c++ )
 	{
 		status->org_status[c] = (GtkLabel *)gtk_label_new ( label[c] );
 		gtk_widget_set_halign ( GTK_WIDGET ( status->org_status[c] ), GTK_ALIGN_START );
@@ -141,25 +143,17 @@ static void status_init ( Status *status )
 	gtk_box_set_spacing ( h_box, 5 );
 	gtk_widget_set_visible (  GTK_WIDGET ( h_box ), TRUE );
 
-	GtkButton *bscan = (GtkButton *)gtk_button_new_with_label ( "⏵" );
-	GtkButton *bstop = (GtkButton *)gtk_button_new_with_label ( "⏹" );
-	GtkButton *binfo = (GtkButton *)gtk_button_new_with_label ( "🛈" );
-	GtkButton *bexit = (GtkButton *)gtk_button_new_with_label ( "⏻" );
+	const char *labels[] = { "⏵", "⏹", "🛈", "⏻" };
+	const void *funcs[] = { status_clicked_scan, status_clicked_stop, status_clicked_info, status_clicked_exit };
 
-	g_signal_connect ( bscan, "clicked", G_CALLBACK ( status_clicked_scan ), status );
-	g_signal_connect ( bstop, "clicked", G_CALLBACK ( status_clicked_stop ), status );
-	g_signal_connect ( binfo, "clicked", G_CALLBACK ( status_clicked_info ), status );
-	g_signal_connect ( bexit, "clicked", G_CALLBACK ( status_clicked_exit ), status );
+	for ( c = 0; c < G_N_ELEMENTS ( labels ); c++ )
+	{
+		GtkButton *button = (GtkButton *)gtk_button_new_with_label ( labels[c] );
+		g_signal_connect ( button, "clicked", G_CALLBACK ( funcs[c] ), status );
 
-	gtk_widget_set_visible (  GTK_WIDGET ( bscan ), TRUE );
-	gtk_widget_set_visible (  GTK_WIDGET ( bstop ), TRUE );
-	gtk_widget_set_visible (  GTK_WIDGET ( binfo ), TRUE );
-	gtk_widget_set_visible (  GTK_WIDGET ( bexit ), TRUE );
-
-	gtk_box_pack_start ( h_box, GTK_WIDGET ( bscan  ), TRUE, TRUE, 0 );
-	gtk_box_pack_start ( h_box, GTK_WIDGET ( bstop  ), TRUE, TRUE, 0 );
-	gtk_box_pack_start ( h_box, GTK_WIDGET ( binfo  ), TRUE, TRUE, 0 );
-	gtk_box_pack_start ( h_box, GTK_WIDGET ( bexit  ), TRUE, TRUE, 0 );
+		gtk_widget_set_visible (  GTK_WIDGET ( button ), TRUE );
+		gtk_box_pack_start ( h_box, GTK_WIDGET ( button  ), TRUE, TRUE, 0 );
+	}
 
 	gtk_box_pack_end ( box, GTK_WIDGET ( h_box ), FALSE, FALSE, 5 );
 

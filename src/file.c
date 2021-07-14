@@ -36,7 +36,7 @@ static gpointer dvr_rec_thread ( DwrRec *dvr_rec )
 	g_mutex_init ( &dvr_rec->mutex );
 
 	gboolean stop = FALSE;
-	uint32_t buf[BUF_SIZE];
+	uint8_t buf[BUF_SIZE];
 	ssize_t r = 0, w = 0;
 	uint64_t total = 0;
 

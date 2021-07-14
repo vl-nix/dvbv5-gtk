@@ -781,8 +781,8 @@ static void dvb_finalize ( GObject *object )
 
 	dvb->exit = TRUE;
 
-	if ( dvb->input_file ) free ( dvb->input_file  );
-	if ( dvb->input_file ) free ( dvb->output_file );
+	if ( dvb->input_file  ) free ( dvb->input_file  );
+	if ( dvb->output_file ) free ( dvb->output_file );
 
 	if ( dvb->dvb_fe   ) dvb_dev_free ( dvb->dvb_fe   );
 	if ( dvb->dvb_zap  ) dvb_dev_free ( dvb->dvb_zap  );

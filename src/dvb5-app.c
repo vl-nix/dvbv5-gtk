@@ -43,5 +43,5 @@ static void dvb5_app_class_init ( Dvb5AppClass *class )
 
 Dvb5App * dvb5_app_new ( void )
 {
-	return g_object_new ( DVB5_TYPE_APP, /*"application-id", "org.gnome.dvbv5",*/ "flags", G_APPLICATION_NON_UNIQUE, NULL );
+	return g_object_new ( DVB5_TYPE_APP, "application-id", "org.gnome.dvbv5", NULL );
 }
