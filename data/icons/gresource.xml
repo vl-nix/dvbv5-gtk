@@ -1,0 +1,12 @@
+<gresources>
+  <gresource prefix="/dvbv5">
+    <file preprocess="to-pixdata">dvb-clear.png</file>
+    <file preprocess="to-pixdata">dvb-dark.png</file>
+    <file preprocess="to-pixdata">dvb-info.png</file>
+    <file preprocess="to-pixdata">dvb-quit.png</file>
+    <file preprocess="to-pixdata">dvb-stop.png</file>
+    <file preprocess="to-pixdata">dvb-start.png</file>
+	<file preprocess="to-pixdata">dvb-rec.png</file>
+    <file preprocess="to-pixdata">dvbv5-gtk.svg</file>
+  </gresource>
+</gresources>
