@@ -55,9 +55,9 @@ static void level_init ( Level *level )
 	gtk_widget_set_visible ( GTK_WIDGET ( level->bar_snr ), TRUE );
 	gtk_widget_set_visible ( GTK_WIDGET ( box ), TRUE );
 
-	gtk_box_append ( box, GTK_WIDGET ( level->sgn_snr ) );
-	gtk_box_append ( box, GTK_WIDGET ( level->bar_sgn ) );
-	gtk_box_append ( box, GTK_WIDGET ( level->bar_snr ) );
+	gtk_box_pack_start ( box, GTK_WIDGET ( level->sgn_snr ), FALSE, FALSE, 0 );
+	gtk_box_pack_start ( box, GTK_WIDGET ( level->bar_sgn ), FALSE, FALSE, 0 );
+	gtk_box_pack_start ( box, GTK_WIDGET ( level->bar_snr ), FALSE, FALSE, 0 );
 
 	g_signal_connect ( level, "level-update", G_CALLBACK ( level_handler_update ), NULL );
 }

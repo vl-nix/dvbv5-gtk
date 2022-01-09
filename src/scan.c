@@ -11,8 +11,6 @@
 #include "lnb.h"
 #include "file.h"
 
-#include <glib/gi18n.h>
-
 enum io_file
 {
 	INT_F,
@@ -41,10 +39,10 @@ static void scan_handler_get_data ( Scan *scan )
 	uint8_t demux     = (uint8_t)gtk_spin_button_get_value_as_int ( scan->spinbutton[2] );
 	uint8_t time_mult = (uint8_t)gtk_spin_button_get_value_as_int ( scan->spinbutton[3] );
 
-	gboolean new_freqs  = gtk_check_button_get_active ( scan->checkbutton[0] );
-	gboolean get_detect = gtk_check_button_get_active ( scan->checkbutton[1] );
-	gboolean get_nit    = gtk_check_button_get_active ( scan->checkbutton[2] );
-	gboolean other_nit  = gtk_check_button_get_active ( scan->checkbutton[3] );
+	gboolean new_freqs  = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( scan->checkbutton[0] ) );
+	gboolean get_detect = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( scan->checkbutton[1] ) );
+	gboolean get_nit    = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( scan->checkbutton[2] ) );
+	gboolean other_nit  = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( scan->checkbutton[3] ) );
 
 	int8_t sat_n = (int8_t)gtk_spin_button_get_value_as_int ( scan->spinbutton[4] );
 	uint8_t diseqc_w = (uint8_t)gtk_spin_button_get_value_as_int ( scan->spinbutton[5] );
@@ -52,8 +50,8 @@ static void scan_handler_get_data ( Scan *scan )
 	const char *lnb = gtk_combo_box_get_active_id ( GTK_COMBO_BOX ( scan->combo_lnb ) );
 	g_autofree char *lna = gtk_combo_box_text_get_active_text (scan->combo_lna );
 
-	const char *file_i = gtk_entry_buffer_get_text ( gtk_entry_get_buffer ( scan->entry_int ) );
-	const char *file_o = gtk_entry_buffer_get_text ( gtk_entry_get_buffer ( scan->entry_out ) );
+	const char *file_i = gtk_entry_get_text ( scan->entry_int );
+	const char *file_o = gtk_entry_get_text ( scan->entry_out );
 
 	g_autofree char *fmi = gtk_combo_box_text_get_active_text (scan->combo_int );
 	g_autofree char *fmo = gtk_combo_box_text_get_active_text (scan->combo_out );
@@ -99,7 +97,7 @@ static GtkCheckButton * scan_create_checkbutton ( int16_t value, uint8_t num, co
 {
 	GtkCheckButton *checkbutton = (GtkCheckButton *)gtk_check_button_new ();
 	gtk_widget_set_name ( GTK_WIDGET ( checkbutton ), name );
-	gtk_check_button_set_active ( checkbutton, ( value ) ? TRUE : FALSE );
+	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON ( checkbutton ), ( value ) ? TRUE : FALSE );
 
 	scan->checkbutton[num] = checkbutton;
 
@@ -116,7 +114,7 @@ static void scan_append_text_combo_box ( GtkComboBoxText *combo_box, const char 
 	gtk_combo_box_set_active ( GTK_COMBO_BOX ( combo_box ), active );
 }
 
-static void scan_signal_clicked_button_lnb ( G_GNUC_UNUSED GtkButton *button, Scan *scan )
+static void scan_signal_clicked_button_lnb ( GtkButton *button, Scan *scan )
 {
 	const char *lnb_name = gtk_combo_box_get_active_id ( GTK_COMBO_BOX ( scan->combo_lnb ) );
 
@@ -124,7 +122,8 @@ static void scan_signal_clicked_button_lnb ( G_GNUC_UNUSED GtkButton *button, Sc
 
 	const char *desc = lnb_get_desc ( lnb_name );
 
-	GtkWindow *window = NULL;
+	GtkWindow *window = GTK_WINDOW ( gtk_widget_get_toplevel ( GTK_WIDGET ( button ) ) );
+
 	dvb5_message_dialog ( lnb_name, desc, GTK_MESSAGE_INFO, window );
 }
 
@@ -146,11 +145,11 @@ static GtkBox * scan_create_combo_box_lnb ( Scan *scan )
 
 	gtk_combo_box_set_active ( GTK_COMBO_BOX ( scan->combo_lnb ), 0 );
 
-	scan->button_lnb = (GtkButton *)gtk_button_new_from_icon_name ( "info" );
+	scan->button_lnb = (GtkButton *)gtk_button_new_from_icon_name ( "dvb-info", GTK_ICON_SIZE_MENU );
 	g_signal_connect ( scan->button_lnb, "clicked", G_CALLBACK ( scan_signal_clicked_button_lnb ), scan );
 
-	gtk_box_append ( h_box, GTK_WIDGET ( scan->combo_lnb ) );
-	gtk_box_append ( h_box, GTK_WIDGET ( scan->button_lnb ) );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( scan->combo_lnb  ), TRUE, TRUE, 0 );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( scan->button_lnb ), TRUE, TRUE, 0 );
 
 	gtk_widget_set_visible ( GTK_WIDGET ( scan->combo_lnb  ), TRUE );
 	gtk_widget_set_visible ( GTK_WIDGET ( scan->button_lnb ), TRUE );
@@ -173,7 +172,7 @@ static GtkComboBoxText * scan_create_combo_box_lna ( Scan *scan )
 static GtkComboBoxText * scan_create_combo_box_format ( uint8_t num, Scan *scan )
 {
 	const char *inp[] = { "DVBV5", "CHANNEL" };
-	const char *out[] = { "DVBV5", "VDR", "CHANNEL", "scan" };
+	const char *out[] = { "DVBV5", "VDR", "CHANNEL", "ZAP" };
 
 	GtkComboBoxText *combo_box = (GtkComboBoxText *) gtk_combo_box_text_new ();
 
@@ -190,17 +189,15 @@ static GtkBox * scan_set_initial_output_file ( const char *file, uint8_t num, Sc
 	GtkBox *v_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_VERTICAL, 0 );
 	gtk_widget_set_visible ( GTK_WIDGET ( v_box ), TRUE );
 
-	GtkEntryBuffer *bfr = gtk_entry_buffer_new ( file, -1 );
-
 	GtkEntry *entry = (GtkEntry *)gtk_entry_new ();
-	gtk_entry_set_buffer ( entry, bfr );
-	// g_object_set ( entry, "editable", FALSE, NULL );
+	gtk_entry_set_text ( entry, file );
+	g_object_set ( entry, "editable", FALSE, NULL );
 	gtk_entry_set_icon_from_icon_name ( entry, GTK_ENTRY_ICON_SECONDARY, "folder" );
 
 	if ( num == INT_F ) scan->entry_int = entry;
 	if ( num == OUT_F ) scan->entry_out = entry;
 
-	gtk_box_append ( v_box, GTK_WIDGET ( entry ) );
+	gtk_box_pack_start ( v_box, GTK_WIDGET ( entry ), FALSE, FALSE, 0 );
 
 	gtk_widget_set_visible ( GTK_WIDGET ( entry ), TRUE );
 
@@ -284,100 +281,53 @@ static void scan_create ( Scan *scan )
 	gtk_grid_attach ( GTK_GRID ( grid ), GTK_WIDGET ( scan_create_combo_box_format ( OUT_F, scan ) ), 2, d++, 2, 1 );
 }
 
-static void scan_file_open_response ( GtkFileChooserDialog *dialog, int response, Scan *scan )
+static void scan_signal_drag_in ( G_GNUC_UNUSED GtkGrid *grid, GdkDragContext *ct, G_GNUC_UNUSED int x, G_GNUC_UNUSED int y,
+        GtkSelectionData *s_data, G_GNUC_UNUSED uint info, guint32 time, Scan *scan )
 {
-	if ( response == GTK_RESPONSE_ACCEPT )
-	{
-		GtkFileChooser *chooser = GTK_FILE_CHOOSER ( dialog );
+	char **uris = gtk_selection_data_get_uris ( s_data );
 
-		g_autoptr(GFile) file = gtk_file_chooser_get_file ( chooser );
+        g_autofree char *file = uri_get_path ( uris[0] );
 
-		g_autofree char *filename = g_file_get_path ( file );
+        gtk_entry_set_text ( scan->entry_int, file );
 
-		if ( filename ) { GtkEntryBuffer *bfr = gtk_entry_buffer_new ( filename, -1 ); gtk_entry_set_buffer ( scan->entry_int, bfr ); }
-	}
+	g_strfreev ( uris );
 
-	gtk_window_destroy ( GTK_WINDOW ( dialog ) );
+	gtk_drag_finish ( ct, TRUE, FALSE, time );
 }
 
-static void scan_file_open ( const char *path, const char *icon, uint8_t num, Scan *scan )
-{
-	GtkWindow *window = NULL;
-
-	GtkFileChooserDialog *dialog = ( GtkFileChooserDialog *)gtk_file_chooser_dialog_new (
-		" ", window, num, _("_Cancel"), GTK_RESPONSE_CANCEL, _("_Open"), GTK_RESPONSE_ACCEPT, NULL );
-
-	gtk_window_set_icon_name ( GTK_WINDOW ( dialog ), icon );
-
-	g_autoptr(GFile) file_d = g_file_new_for_path ( path );
-	gtk_file_chooser_set_current_folder ( GTK_FILE_CHOOSER ( dialog ), file_d, NULL );
-
-	gtk_file_chooser_set_select_multiple ( GTK_FILE_CHOOSER ( dialog ), FALSE );
-
-	gtk_widget_show ( GTK_WIDGET ( dialog ) );
-
- 	g_signal_connect ( dialog, "response", G_CALLBACK ( scan_file_open_response ), scan );
-}
-
-static void scan_signal_file_open ( G_GNUC_UNUSED GtkEntry *entry, GtkEntryIconPosition icon_pos, G_GNUC_UNUSED Scan *scan )
+static void scan_signal_file_open ( GtkEntry *entry, GtkEntryIconPosition icon_pos, G_GNUC_UNUSED GdkEventButton *event, G_GNUC_UNUSED Scan *scan )
 {
 	if ( icon_pos == GTK_ENTRY_ICON_SECONDARY )
 	{
+		GtkWindow *window = GTK_WINDOW ( gtk_widget_get_toplevel ( GTK_WIDGET ( entry ) ) );
+
 		const char *path = ( g_file_test ( "/usr/share/dvb/", G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR ) ) ? "/usr/share/dvb/" : g_get_home_dir ();
 
-		scan_file_open ( path, "document-open", GTK_FILE_CHOOSER_ACTION_OPEN, scan );
+		g_autofree char *file = file_open ( path, window );
+
+		if ( file ) gtk_entry_set_text ( entry, file );
 	}
 }
 
-static void scan_file_save_response ( GtkFileChooserDialog *dialog, int response, Scan *scan )
-{
-	if ( response == GTK_RESPONSE_ACCEPT )
-	{
-		GtkFileChooser *chooser = GTK_FILE_CHOOSER ( dialog );
-
-		g_autoptr(GFile) file = gtk_file_chooser_get_file ( chooser );
-
-		g_autofree char *filename = g_file_get_path ( file );
-
-		if ( filename ) { GtkEntryBuffer *bfr = gtk_entry_buffer_new ( filename, -1 ); gtk_entry_set_buffer ( scan->entry_out, bfr ); }
-	}
-
-	gtk_window_destroy ( GTK_WINDOW ( dialog ) );
-}
-
-static void scan_file_save ( const char *path, const char *file, const char *icon, uint8_t num, Scan *scan )
-{
-	GtkWindow *window = NULL;
-
-	GtkFileChooserDialog *dialog = ( GtkFileChooserDialog *)gtk_file_chooser_dialog_new (
-		" ", window, num, _("_Cancel"), GTK_RESPONSE_CANCEL, _("_Save"), GTK_RESPONSE_ACCEPT, NULL );
-
-	gtk_window_set_icon_name ( GTK_WINDOW ( dialog ), icon );
-
-	g_autoptr(GFile) file_d = g_file_new_for_path ( path );
-	gtk_file_chooser_set_current_folder ( GTK_FILE_CHOOSER ( dialog ), file_d, NULL );
-
-	if ( file )
-		gtk_file_chooser_set_current_name ( GTK_FILE_CHOOSER ( dialog ), file );
-	else
-		gtk_file_chooser_set_select_multiple ( GTK_FILE_CHOOSER ( dialog ), FALSE );
-
-	gtk_widget_show ( GTK_WIDGET ( dialog ) );
-
- 	g_signal_connect ( dialog, "response", G_CALLBACK ( scan_file_save_response ), scan );
-}
-
-static void scan_signal_file_save ( G_GNUC_UNUSED GtkEntry *entry, GtkEntryIconPosition icon_pos, G_GNUC_UNUSED Scan *scan )
+static void scan_signal_file_save ( GtkEntry *entry, GtkEntryIconPosition icon_pos, G_GNUC_UNUSED GdkEventButton *event, G_GNUC_UNUSED Scan *scan )
 {
 	if ( icon_pos == GTK_ENTRY_ICON_SECONDARY )
 	{
-		scan_file_save ( g_get_home_dir (), "dvb_channel.conf", "document-save", GTK_FILE_CHOOSER_ACTION_SAVE, scan );
+		GtkWindow *window = GTK_WINDOW ( gtk_widget_get_toplevel ( GTK_WIDGET ( entry ) ) );
+
+		g_autofree char *file = file_save ( g_get_home_dir (), "dvb_channel.conf", window );
+
+		if ( file ) gtk_entry_set_text ( entry, file );
 	}
 }
 
 static void scan_init ( Scan *scan )
 {
 	scan_create ( scan );
+
+	gtk_drag_dest_set ( GTK_WIDGET ( scan ), GTK_DEST_DEFAULT_ALL, NULL, 0, GDK_ACTION_COPY );
+	gtk_drag_dest_add_uri_targets  ( GTK_WIDGET ( scan ) );
+	g_signal_connect ( scan, "drag-data-received", G_CALLBACK ( scan_signal_drag_in ), scan );
 
 	g_signal_connect ( scan->entry_int, "icon-press", G_CALLBACK ( scan_signal_file_open ), scan );
 	g_signal_connect ( scan->entry_out, "icon-press", G_CALLBACK ( scan_signal_file_save ), scan );

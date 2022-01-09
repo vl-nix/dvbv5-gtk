@@ -10,8 +10,6 @@
 #include "zap.h"
 #include "file.h"
 
-#include <glib/gi18n.h>
-
 #include <linux/dvb/dmx.h>
 
 #include <libdvbv5/dvb-file.h>
@@ -69,8 +67,6 @@ struct _Zap
 
 G_DEFINE_TYPE ( Zap, zap, GTK_TYPE_BOX )
 
-static gboolean zap_signal_parse_dvb_file ( const char *file, Zap *zap );
-
 static void zap_treeview_append ( const char *channel, uint16_t apid, uint16_t vpid, Zap *zap )
 {
 	GtkTreeIter iter;
@@ -94,7 +90,7 @@ static void zap_signal_trw_act ( GtkTreeView *tree_view, GtkTreePath *path, G_GN
 
 	uint8_t descr_num = out_demux_n[num_dmx].descr_num; // enum dmx_output
 
-	const char *file = gtk_entry_buffer_get_text ( gtk_entry_get_buffer ( zap->entry_file ) );
+	const char *file = gtk_entry_get_text ( zap->entry_file );
 
 	gboolean fe_lock = FALSE;
 	g_signal_emit_by_name ( zap, "zap-get-felock", &fe_lock );
@@ -116,7 +112,7 @@ static void zap_signal_trw_act ( GtkTreeView *tree_view, GtkTreePath *path, G_GN
 	if ( zap->channel ) { free ( zap->channel ); zap->channel = NULL; }
 	gtk_tree_model_get ( model, &iter, COL_CHL, &zap->channel, -1 );
 
-	const char *file_rec = gtk_entry_buffer_get_text ( gtk_entry_get_buffer ( zap->entry_rec ) );
+	const char *file_rec = gtk_entry_get_text ( zap->entry_rec );
 
 	g_autofree char *date = time_to_str ();
 	g_autofree char *dir = g_path_get_dirname ( file_rec );
@@ -124,52 +120,23 @@ static void zap_signal_trw_act ( GtkTreeView *tree_view, GtkTreePath *path, G_GN
 	char file_new[PATH_MAX];
 	sprintf ( file_new, "%s/%s-%s.ts", dir, date, zap->channel );
 
-	GtkEntryBuffer *bfr = gtk_entry_buffer_new ( file_new, -1 );
-	gtk_entry_set_buffer ( zap->entry_rec, bfr );
+	gtk_entry_set_text ( zap->entry_rec, file_new );
 
 	g_signal_emit_by_name ( zap, "zap-set-data", descr_num, zap->channel, file );
 }
 
-static gboolean zap_treeview_drag_drop ( G_GNUC_UNUSED GtkDropTarget *target, const GValue *value, G_GNUC_UNUSED double x, G_GNUC_UNUSED double y, Zap *zap )
-{
-	if ( G_VALUE_HOLDS ( value, G_TYPE_FILE ) )
-	{
-		g_autoptr(GFile) file = g_value_get_object ( value );
-		g_autofree char *filename = g_file_get_path ( file );
-
-		zap_signal_parse_dvb_file ( filename, zap );
-	}
-	else if ( G_VALUE_HOLDS ( value, G_TYPE_STRING ) )
-		zap_signal_parse_dvb_file ( g_value_get_string ( value ), zap );
-
-	return TRUE;
-}
-
-static void zap_create_treeview_drop ( Zap *zap )
-{
-	GType types[2] = { G_TYPE_FILE, G_TYPE_STRING };
-
-	GtkDropTarget *dest = gtk_drop_target_new ( G_TYPE_INVALID, GDK_ACTION_COPY );
-	gtk_drop_target_set_gtypes ( dest, types, G_N_ELEMENTS (types) );
-	g_signal_connect ( dest, "drop", G_CALLBACK ( zap_treeview_drag_drop ), zap );
-
-	gtk_widget_add_controller ( GTK_WIDGET ( zap ), GTK_EVENT_CONTROLLER (dest) );
-}
-
 static GtkScrolledWindow * zap_create_treeview_scroll ( Zap *zap )
 {
-	GtkScrolledWindow *scroll = (GtkScrolledWindow *)gtk_scrolled_window_new ();
+	GtkScrolledWindow *scroll = (GtkScrolledWindow *)gtk_scrolled_window_new ( NULL, NULL );
 	gtk_scrolled_window_set_policy ( scroll, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC );
 	gtk_widget_set_visible ( GTK_WIDGET ( scroll ), TRUE );
-	gtk_widget_set_hexpand ( GTK_WIDGET ( scroll ), TRUE );
-	gtk_widget_set_vexpand ( GTK_WIDGET ( scroll ), TRUE );
 
 	GtkListStore *store = gtk_list_store_new ( NUM_COLS, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING );
 
 	zap->treeview = (GtkTreeView *)gtk_tree_view_new_with_model ( GTK_TREE_MODEL ( store ) );
+	gtk_drag_dest_set ( GTK_WIDGET ( zap->treeview ), GTK_DEST_DEFAULT_ALL, NULL, 0, GDK_ACTION_COPY );
+	gtk_drag_dest_add_uri_targets  ( GTK_WIDGET ( zap->treeview ) );
 	gtk_widget_set_visible ( GTK_WIDGET ( zap->treeview ), TRUE );
-
-	zap_create_treeview_drop ( zap );
 
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *column;
@@ -192,8 +159,7 @@ static GtkScrolledWindow * zap_create_treeview_scroll ( Zap *zap )
 		gtk_tree_view_append_column ( zap->treeview, column );
 	}
 
-	gtk_scrolled_window_set_child ( scroll, GTK_WIDGET ( zap->treeview ) );
-
+	gtk_container_add ( GTK_CONTAINER ( scroll ), GTK_WIDGET ( zap->treeview ) );
 	g_object_unref ( G_OBJECT (store) );
 
 	return scroll;
@@ -233,107 +199,56 @@ static gboolean zap_signal_parse_dvb_file ( const char *file, Zap *zap )
 
 	dvb_file_free ( dvb_file );
 
-	GtkEntryBuffer *bfr = gtk_entry_buffer_new ( file, -1 );
-	gtk_entry_set_buffer ( zap->entry_file, bfr );
+	gtk_entry_set_text ( zap->entry_file, file );
 
 	return TRUE;
 }
 
-static void zap_file_open_response ( GtkFileChooserDialog *dialog, int response, Zap *zap )
-{
-	if ( response == GTK_RESPONSE_ACCEPT )
-	{
-		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-
-		g_autoptr(GFile) file = gtk_file_chooser_get_file ( chooser );
-
-		g_autofree char *filename = g_file_get_path ( file );
-
-		zap_signal_parse_dvb_file ( filename, zap );
-	}
-
-	gtk_window_destroy ( GTK_WINDOW ( dialog ) );
-}
-
-static void zap_file_open ( const char *path, const char *icon, uint8_t num, Zap *zap )
-{
-	GtkWindow *window = NULL;
-
-	GtkFileChooserDialog *dialog = ( GtkFileChooserDialog *)gtk_file_chooser_dialog_new (
-		" ", window, num, _("_Cancel"), GTK_RESPONSE_CANCEL, _("_Open"), GTK_RESPONSE_ACCEPT, NULL );
-
-	gtk_window_set_icon_name ( GTK_WINDOW ( dialog ), icon );
-
-	g_autoptr(GFile) file_d = g_file_new_for_path ( path );
-	gtk_file_chooser_set_current_folder ( GTK_FILE_CHOOSER ( dialog ), file_d, NULL );
-
-	gtk_file_chooser_set_select_multiple ( GTK_FILE_CHOOSER ( dialog ), FALSE );
-
-	gtk_widget_show ( GTK_WIDGET ( dialog ) );
-
- 	g_signal_connect ( dialog, "response", G_CALLBACK ( zap_file_open_response ), zap );
-}
-
-static void zap_signal_file_open ( G_GNUC_UNUSED GtkEntry *entry, GtkEntryIconPosition icon_pos, Zap *zap )
+static void zap_signal_file_open ( GtkEntry *entry, GtkEntryIconPosition icon_pos, G_GNUC_UNUSED GdkEventButton *event, Zap *zap )
 {
 	if ( icon_pos == GTK_ENTRY_ICON_SECONDARY )
 	{
-		zap_file_open ( g_get_home_dir (), "document-open", GTK_FILE_CHOOSER_ACTION_OPEN, zap );
+		GtkWindow *window = GTK_WINDOW ( gtk_widget_get_toplevel ( GTK_WIDGET ( entry ) ) );
+
+		g_autofree char *file = file_open ( g_get_home_dir (), window );
+
+		zap_signal_parse_dvb_file ( file, zap );
 	}
+}
+
+static void zap_signal_drag_in ( G_GNUC_UNUSED GtkTreeView *tree_view, GdkDragContext *ct, G_GNUC_UNUSED int x, G_GNUC_UNUSED int y,
+        GtkSelectionData *s_data, G_GNUC_UNUSED uint info, guint32 time, Zap *zap )
+{
+	char **uris = gtk_selection_data_get_uris ( s_data );
+
+	g_autofree char *file = uri_get_path ( uris[0] );
+
+	zap_signal_parse_dvb_file ( file, zap );
+
+	g_strfreev ( uris );
+
+	gtk_drag_finish ( ct, TRUE, FALSE, time );
 }
 
 static void zap_clicked_clear ( G_GNUC_UNUSED GtkButton *button, Zap *zap )
 {
-	GtkEntryBuffer *bfr = gtk_entry_buffer_new ( "", -1 );
-	gtk_entry_set_buffer ( zap->entry_file, bfr );
-
+	gtk_entry_set_text ( zap->entry_file, "" );
 	gtk_list_store_clear ( GTK_LIST_STORE ( gtk_tree_view_get_model ( zap->treeview ) ) );
 }
 
-static void zap_file_save_response ( GtkFileChooserDialog *dialog, int response, Zap *zap )
-{
-	if ( response == GTK_RESPONSE_ACCEPT )
-	{
-		GtkFileChooser *chooser = GTK_FILE_CHOOSER ( dialog );
-
-		g_autoptr(GFile) file = gtk_file_chooser_get_file ( chooser );
-
-		g_autofree char *filename = g_file_get_path ( file );
-
-		if ( filename ) { GtkEntryBuffer *bfr = gtk_entry_buffer_new ( filename, -1 ); gtk_entry_set_buffer ( zap->entry_rec, bfr ); }
-	}
-
-	gtk_window_destroy ( GTK_WINDOW ( dialog ) );
-}
-
-static void zap_file_save ( const char *path, const char *file, const char *icon, uint8_t num, Zap *zap )
-{
-	GtkWindow *window = NULL;
-
-	GtkFileChooserDialog *dialog = ( GtkFileChooserDialog *)gtk_file_chooser_dialog_new (
-		" ", window, num, _("_Cancel"), GTK_RESPONSE_CANCEL, _("_Save"), GTK_RESPONSE_ACCEPT, NULL );
-
-	gtk_window_set_icon_name ( GTK_WINDOW ( dialog ), icon );
-
-	g_autoptr(GFile) file_d = g_file_new_for_path ( path );
-	gtk_file_chooser_set_current_folder ( GTK_FILE_CHOOSER ( dialog ), file_d, NULL );
-
-	gtk_file_chooser_set_current_name ( GTK_FILE_CHOOSER ( dialog ), file );
-
-	gtk_widget_show ( GTK_WIDGET ( dialog ) );
-
- 	g_signal_connect ( dialog, "response", G_CALLBACK ( zap_file_save_response ), zap );
-}
-
-static void zap_signal_record_file ( G_GNUC_UNUSED GtkEntry *entry, GtkEntryIconPosition icon_pos, Zap *zap )
+static void zap_signal_record_file ( GtkEntry *entry, GtkEntryIconPosition icon_pos, G_GNUC_UNUSED GdkEventButton *event, G_GNUC_UNUSED Zap *zap )
 {
 	if ( icon_pos == GTK_ENTRY_ICON_SECONDARY )
 	{
-		const char *file_rec = gtk_entry_buffer_get_text ( gtk_entry_get_buffer ( zap->entry_rec ) );
+		GtkWindow *window = GTK_WINDOW ( gtk_widget_get_toplevel ( GTK_WIDGET ( entry ) ) );
+
+		const char *file_rec = gtk_entry_get_text ( zap->entry_rec );
 
 		g_autofree char *name = g_path_get_basename ( file_rec );
 
-		zap_file_save ( g_get_home_dir (), name, "document-save", GTK_FILE_CHOOSER_ACTION_SAVE, zap );
+		g_autofree char *file = file_save ( g_get_home_dir (), name, window );
+
+		if ( file ) gtk_entry_set_text ( entry, file );
 	}
 }
 
@@ -341,7 +256,7 @@ static void zap_set_active_toggled_block ( ulong signal_id, gboolean active, Gtk
 {
 	g_signal_handler_block   ( toggle, signal_id );
 
-	gtk_check_button_set_active ( toggle, active );
+	gtk_toggle_button_set_active ( GTK_TOGGLE_BUTTON ( toggle ), active );
 
 	g_signal_handler_unblock ( toggle, signal_id );
 }
@@ -351,7 +266,7 @@ static void zap_signal_toggled_record ( GtkCheckButton *button, Zap *zap )
 	gboolean fe_lock = FALSE;
 	g_signal_emit_by_name ( zap, "zap-get-felock", &fe_lock );
 
-	GtkWindow *window = NULL;
+	GtkWindow *window = GTK_WINDOW ( gtk_widget_get_toplevel ( GTK_WIDGET ( button ) ) );
 
 	if ( !fe_lock || !zap->channel )
 	{
@@ -366,9 +281,9 @@ static void zap_signal_toggled_record ( GtkCheckButton *button, Zap *zap )
 	g_signal_emit_by_name ( zap, "zap-get-adapter", &adapter );
 
 	const char *res = NULL;
-	const char *file_rec = gtk_entry_buffer_get_text ( gtk_entry_get_buffer ( zap->entry_rec ) );
+	const char *file_rec = gtk_entry_get_text ( zap->entry_rec );
 
-	gboolean active = gtk_check_button_get_active ( button );
+	gboolean active = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( button ) );
 
 	if ( !active )
 	{
@@ -406,31 +321,27 @@ static GtkBox * zap_set_record_file ( const char *file, Zap *zap )
 	gtk_box_set_spacing ( h_box, 5 );
 	gtk_widget_set_visible ( GTK_WIDGET ( h_box ), TRUE );
 
-	GtkEntryBuffer *bfr = gtk_entry_buffer_new ( file, -1 );
-
 	zap->entry_rec = (GtkEntry *)gtk_entry_new ();
-	gtk_widget_set_hexpand ( GTK_WIDGET ( zap->entry_rec ), TRUE );
-	gtk_entry_set_buffer ( zap->entry_rec, bfr );
-	// g_object_set ( zap->entry_rec, "editable", FALSE, NULL );
+	gtk_entry_set_text ( zap->entry_rec, file );
+	g_object_set ( zap->entry_rec, "editable", FALSE, NULL );
 	gtk_entry_set_icon_from_icon_name ( zap->entry_rec, GTK_ENTRY_ICON_SECONDARY, "folder" );
 
 	g_signal_connect ( zap->entry_rec, "icon-press", G_CALLBACK ( zap_signal_record_file ), zap );
 
-	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_resource ( "/dvbv5/dvb-rec.png", NULL );
-	GtkImage *image = (GtkImage *)gtk_image_new_from_pixbuf ( pixbuf );
+	GtkImage *image = (GtkImage *)gtk_image_new_from_icon_name ( "dvb-rec", GTK_ICON_SIZE_MENU );
 
 	zap->check_rec = (GtkCheckButton *)gtk_check_button_new ();
 	zap->rec_signal_id = g_signal_connect ( zap->check_rec, "toggled", G_CALLBACK ( zap_signal_toggled_record ), zap );
 
-	gtk_box_append ( h_box, GTK_WIDGET ( image ) );
-	gtk_box_append ( h_box, GTK_WIDGET ( zap->check_rec ) );
-	gtk_box_append ( h_box, GTK_WIDGET ( zap->entry_rec ) );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( image ), FALSE, FALSE, 0 );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->check_rec ), FALSE, FALSE, 0 );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->entry_rec   ), TRUE, TRUE, 0 );
 
 	gtk_widget_set_visible ( GTK_WIDGET ( image ), TRUE );
 	gtk_widget_set_visible ( GTK_WIDGET ( zap->entry_rec ), TRUE );
 	gtk_widget_set_visible ( GTK_WIDGET ( zap->check_rec ), TRUE );
 
-	gtk_box_append ( v_box, GTK_WIDGET ( h_box ) );
+	gtk_box_pack_start ( v_box, GTK_WIDGET ( h_box ), FALSE, FALSE, 0 );
 
 	return v_box;
 }
@@ -438,7 +349,7 @@ static GtkBox * zap_set_record_file ( const char *file, Zap *zap )
 static int zap_pid_play ( Zap *zap )
 {
 	int pid = 0, SIZE = 1024;
-	const char *file = gtk_entry_buffer_get_text ( gtk_entry_get_buffer ( zap->entry_play ) );
+	const char *file = gtk_entry_get_text ( zap->entry_play );
 
 	char line[SIZE];
 	FILE *fp = popen ( "ps -T -f -o pid:1,args", "r" );
@@ -460,7 +371,7 @@ static gboolean zap_status_play ( Zap *zap )
 {
 	if ( zap->exit ) return FALSE;
 
-	gboolean active = gtk_check_button_get_active ( zap->check_play );
+	gboolean active = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( zap->check_play ) );
 
 	if ( !active ) return FALSE;
 
@@ -482,7 +393,7 @@ static void zap_signal_toggled_play ( GtkCheckButton *button, Zap *zap )
 	gboolean fe_lock = FALSE;
 	g_signal_emit_by_name ( zap, "zap-get-felock", &fe_lock );
 
-	GtkWindow *window = NULL;
+	GtkWindow *window = GTK_WINDOW ( gtk_widget_get_toplevel ( GTK_WIDGET ( button ) ) );
 
 	if ( !fe_lock || !zap->channel )
 	{
@@ -493,9 +404,9 @@ static void zap_signal_toggled_play ( GtkCheckButton *button, Zap *zap )
 		return;
 	}
 
-	const char *file = gtk_entry_buffer_get_text ( gtk_entry_get_buffer ( zap->entry_play ) );
+	const char *file = gtk_entry_get_text ( zap->entry_play );
 
-	gboolean active = gtk_check_button_get_active ( button );
+	gboolean active = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON ( button ) );
 
 	if ( active )
 	{
@@ -532,28 +443,24 @@ static GtkBox * zap_set_play_file ( Zap *zap )
 	gtk_box_set_spacing ( h_box, 5 );
 	gtk_widget_set_visible ( GTK_WIDGET ( h_box ), TRUE );
 
-	GtkEntryBuffer *bfr = gtk_entry_buffer_new ( "mplayer -nocache /dev/dvb/adapter0/dvr0", -1 );
-
 	zap->entry_play = (GtkEntry *)gtk_entry_new ();
-	gtk_widget_set_hexpand ( GTK_WIDGET ( zap->entry_play ), TRUE );
-	gtk_entry_set_buffer ( zap->entry_play, bfr );
+	gtk_entry_set_text ( zap->entry_play, "mplayer -nocache /dev/dvb/adapter0/dvr0" );
 	g_object_set ( zap->entry_play, "editable", TRUE, NULL );
 
-	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_resource ( "/dvbv5/dvb-start.png", NULL );
-	GtkImage *image = (GtkImage *)gtk_image_new_from_pixbuf ( pixbuf );
+	GtkImage *image = (GtkImage *)gtk_image_new_from_icon_name ( "dvb-start", GTK_ICON_SIZE_MENU );
 
 	zap->check_play = (GtkCheckButton *)gtk_check_button_new ();
 	zap->play_signal_id = g_signal_connect ( zap->check_play, "toggled", G_CALLBACK ( zap_signal_toggled_play ), zap );
 
-	gtk_box_append ( h_box, GTK_WIDGET ( image ) );
-	gtk_box_append ( h_box, GTK_WIDGET ( zap->check_play ) );
-	gtk_box_append ( h_box, GTK_WIDGET ( zap->entry_play ) );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( image ), FALSE, FALSE, 0 );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->check_play ), FALSE, FALSE, 0 );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->entry_play ), TRUE,  TRUE,  0 );
 
 	gtk_widget_set_visible ( GTK_WIDGET ( image ), TRUE );
 	gtk_widget_set_visible ( GTK_WIDGET ( zap->check_play ), TRUE );
 	gtk_widget_set_visible ( GTK_WIDGET ( zap->entry_play ), TRUE );
 
-	gtk_box_append ( v_box, GTK_WIDGET ( h_box ) );
+	gtk_box_pack_start ( v_box, GTK_WIDGET ( h_box ), FALSE, FALSE, 0 );
 
 	return v_box;
 }
@@ -590,51 +497,50 @@ static void zap_init ( Zap *zap )
 	gtk_widget_set_margin_start  ( GTK_WIDGET ( box ), 10 );
 	gtk_widget_set_margin_end    ( GTK_WIDGET ( box ), 10 );
 
-	gtk_box_append ( box, GTK_WIDGET ( zap_create_treeview_scroll ( zap ) ) );
+	gtk_box_pack_start ( box, GTK_WIDGET ( zap_create_treeview_scroll ( zap ) ), TRUE, TRUE, 0 );
 
-	g_signal_connect ( zap->treeview, "row-activated", G_CALLBACK ( zap_signal_trw_act ), zap );
+	g_signal_connect ( zap->treeview, "drag-data-received", G_CALLBACK ( zap_signal_drag_in ), zap );
+	g_signal_connect ( zap->treeview, "row-activated",      G_CALLBACK ( zap_signal_trw_act ), zap );
 
 	GtkBox *h_box = (GtkBox *)gtk_box_new ( GTK_ORIENTATION_HORIZONTAL, 0 );
 	gtk_box_set_spacing ( h_box, 5 );
 	gtk_widget_set_visible ( GTK_WIDGET ( h_box ), TRUE );
 
-	GtkButton *button_clear = (GtkButton *)gtk_button_new_from_icon_name ( "edit-clear" );
+	GtkButton *button_clear = (GtkButton *)gtk_button_new_from_icon_name ( "dvb-clear", GTK_ICON_SIZE_MENU );
 	gtk_widget_set_visible ( GTK_WIDGET ( button_clear ), TRUE );
 
-	GtkEntryBuffer *bfr = gtk_entry_buffer_new ( "dvb_channel.conf", -1 );
 	zap->entry_file = (GtkEntry *)gtk_entry_new ();
-	gtk_widget_set_hexpand ( GTK_WIDGET ( zap->entry_file ), TRUE );
-	gtk_entry_set_buffer ( zap->entry_file, bfr );
-	// g_object_set ( zap->entry_file, "editable", FALSE, NULL );
+	gtk_entry_set_text ( zap->entry_file, "dvb_channel.conf" );
+	g_object_set ( zap->entry_file, "editable", FALSE, NULL );
 	gtk_entry_set_icon_from_icon_name ( zap->entry_file, GTK_ENTRY_ICON_SECONDARY, "folder" );
 	g_signal_connect ( zap->entry_file, "icon-press", G_CALLBACK ( zap_signal_file_open ), zap );
 
 	g_signal_connect ( button_clear, "clicked", G_CALLBACK ( zap_clicked_clear ), zap );
 
-	const char *icon = "info";
+	const char *icon = "dvb-info";
 	gtk_entry_set_icon_from_icon_name ( zap->entry_file, GTK_ENTRY_ICON_PRIMARY, icon );
 	gtk_entry_set_icon_tooltip_text ( GTK_ENTRY ( zap->entry_file ), GTK_ENTRY_ICON_PRIMARY, "Format only DVBV5" );
-	gtk_box_append ( h_box, GTK_WIDGET ( zap->entry_file ) );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->entry_file ), TRUE, TRUE, 0 );
 
 	zap->combo_dmx = (GtkComboBoxText *) gtk_combo_box_text_new ();
 	zap_combo_dmx_add ( G_N_ELEMENTS ( out_demux_n ), zap );
-	gtk_box_append ( h_box, GTK_WIDGET ( zap->combo_dmx ) );
+	gtk_box_pack_start ( h_box, GTK_WIDGET ( zap->combo_dmx ), TRUE, TRUE, 0 );
 
 	gtk_widget_set_visible ( GTK_WIDGET ( zap->entry_file ), TRUE );
 	gtk_widget_set_visible ( GTK_WIDGET ( zap->combo_dmx  ), TRUE );
 
-	gtk_box_append ( h_box, GTK_WIDGET ( button_clear ) );
+	gtk_box_pack_end   ( h_box, GTK_WIDGET ( button_clear ), FALSE, FALSE, 0 );
 
 	char file_rec[PATH_MAX];
 	sprintf ( file_rec, "%s/%s.ts", g_get_home_dir (), "Record" );
 
 	GtkBox *box_rec = zap_set_record_file ( file_rec, zap );
-	gtk_box_append ( box, GTK_WIDGET ( box_rec ) );
+	gtk_box_pack_start ( box, GTK_WIDGET ( box_rec ), FALSE, FALSE, 0 );
 
 	GtkBox *box_play = zap_set_play_file ( zap );
-	gtk_box_append ( box, GTK_WIDGET ( box_play ) );
+	gtk_box_pack_start ( box, GTK_WIDGET ( box_play ), FALSE, FALSE, 0 );
 
-	gtk_box_append ( box, GTK_WIDGET ( h_box ) );
+	gtk_box_pack_start ( box, GTK_WIDGET ( h_box ), FALSE, FALSE, 0 );
 
 	zap->channel = NULL;
 
