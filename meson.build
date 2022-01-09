@@ -1,4 +1,4 @@
-project('dvbv5-gtk', 'c', version: '22.4', meson_version: '>= 0.50.0', default_options: ['warning_level=2', 'c_std=gnu11'])
+project('dvbv5-gtk', 'c', version: '22.4.dmx', meson_version: '>= 0.50.0', default_options: ['warning_level=2', 'c_std=gnu11'])
 
 desktop = meson.project_name() + '.desktop'
 configure_file(input: join_paths('data', 'desktop'), output: desktop, copy: true, install: true, install_dir: join_paths('share', 'applications'))

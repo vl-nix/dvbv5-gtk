@@ -130,13 +130,8 @@ static void dvb5_handler_dvb_name ( G_GNUC_UNUSED Dvb *dvb, const char *dvb_name
 
 static void dvb5_handler_stats_upd ( G_GNUC_UNUSED Dvb *dvb, uint32_t freq, uint8_t qual, char *sgl, char *snr, uint8_t sgl_p, uint8_t snr_p, gboolean fe_lock, Dvb5Win *win )
 {
-	char *size = NULL;
-	g_signal_emit_by_name ( win->zap, "zap-get-size", &size );
-
 	win->fe_lock = fe_lock;
-	g_signal_emit_by_name ( win->status, "status-update", freq, size, qual, sgl, snr, sgl_p, snr_p, fe_lock );
-
-	free ( size );
+	g_signal_emit_by_name ( win->status, "status-update", freq, NULL, qual, sgl, snr, sgl_p, snr_p, fe_lock );
 }
 
 static void dvb5_handler_stats_org ( G_GNUC_UNUSED Dvb *dvb, int num, char *text, Dvb5Win *win )

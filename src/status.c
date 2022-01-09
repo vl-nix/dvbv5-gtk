@@ -20,7 +20,6 @@ struct _Status
 
 	GtkLabel *dvb_name;
 	GtkLabel *freq_scan;
-	GtkLabel *dvr_record;
 	GtkLabel *org_status[MAX_STATS];
 };
 
@@ -38,13 +37,9 @@ static void status_handler_org ( Status *status, int num, char *text )
 	gtk_label_set_text ( status->org_status[num], set_text );
 }
 
-static void status_handler_update ( Status *status, uint32_t freq, char *fmt_size, uint8_t qual, char *sgl, char *snr, uint8_t sgl_gd, uint8_t snr_gd, gboolean fe_lock )
+static void status_handler_update ( Status *status, uint32_t freq, G_GNUC_UNUSED char *fmt_size, uint8_t qual, char *sgl, char *snr, uint8_t sgl_gd, uint8_t snr_gd, gboolean fe_lock )
 {
 	char text[256];
-	sprintf ( text, " %s ", fmt_size );
-
-	gtk_label_set_text ( status->dvr_record, ( fmt_size ) ? text : "" );
-
 	sprintf ( text, "Freq:  %d ", freq );
 
 	gtk_label_set_text ( status->freq_scan, ( freq ) ? text : "" );
@@ -67,7 +62,6 @@ static void status_clicked_stop ( G_GNUC_UNUSED GtkButton *button, Status *statu
 	g_signal_emit_by_name ( status, "scan-stop" );
 
 	gtk_label_set_text ( status->freq_scan,  "" );
-	gtk_label_set_text ( status->dvr_record, "" );
 
 	const char *label[MAX_STATS] = { "Layer A: ", "Layer B: ","Layer C: ", "Layer D: " };
 
@@ -180,11 +174,6 @@ static void status_init ( Status *status )
 	gtk_widget_set_halign ( GTK_WIDGET ( status->freq_scan ), GTK_ALIGN_START );
 	gtk_box_pack_start ( h_box, GTK_WIDGET ( status->freq_scan ), FALSE, FALSE, 0 );
 	gtk_widget_set_visible (  GTK_WIDGET ( status->freq_scan ), TRUE );
-
-	status->dvr_record = (GtkLabel *)gtk_label_new ( "" );
-	gtk_widget_set_halign ( GTK_WIDGET ( status->dvr_record ), GTK_ALIGN_START );
-	gtk_box_pack_end ( h_box, GTK_WIDGET ( status->dvr_record ), FALSE, FALSE, 0 );
-	gtk_widget_set_visible (  GTK_WIDGET ( status->dvr_record ), TRUE );
 
 	g_signal_connect ( status, "set-dvb-name",  G_CALLBACK ( status_handler_set_dvb_name  ), NULL );
 	g_signal_connect ( status, "status-update", G_CALLBACK ( status_handler_update ), NULL );

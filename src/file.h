@@ -11,14 +11,6 @@
 
 #include <gtk/gtk.h>
 
-typedef struct _DwrRecMonitor DwrRecMonitor;
-
-struct _DwrRecMonitor
-{
-	uint8_t stop_rec;
-	uint64_t total_rec;
-};
-
 char * time_to_str ( void );
 
 char * uri_get_path ( const char * );
@@ -29,4 +21,9 @@ char * file_save ( const char *, const char *, GtkWindow * );
 
 void dvb5_message_dialog ( const char *, const char *, GtkMessageType , GtkWindow * );
 
-const char * dvr_rec_create ( uint8_t , const char *, DwrRecMonitor * );
+uint64_t file_query_info_uint ( const char *, const char *, const char * );
+
+const char * dmx_rec_create ( uint8_t , uint8_t , const char *, uint8_t , uint16_t *, GtkTreeModel *, GtkTreeIter );
+
+const char * dmx_prw_create ( uint8_t , uint8_t , const char *, uint8_t , uint16_t *, GtkTreeModel *, GtkTreeIter , const char * );
+
