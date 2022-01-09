@@ -51,10 +51,9 @@ static void dvbv5_about ( Dvb5Win *win )
 	gtk_about_dialog_set_authors ( dialog, authors );
 	gtk_about_dialog_set_website ( dialog,   "https://github.com/vl-nix/dvbv5-gtk" );
 	gtk_about_dialog_set_copyright ( dialog, "Copyright 2022 Dvbv5-Gtk" );
-	gtk_about_dialog_set_comments  ( dialog, "Gtk+3 interface to DVBv5 tool" );
+	gtk_about_dialog_set_comments  ( dialog, "Gtk4 interface to DVBv5 tool" );
 
-	gtk_dialog_run ( GTK_DIALOG (dialog) );
-	gtk_widget_destroy ( GTK_WIDGET (dialog) );
+	gtk_widget_show ( GTK_WIDGET (dialog) );
 }
 
 static void dvb5_handler_win_info ( G_GNUC_UNUSED Status *status, Dvb5Win *win )
@@ -64,7 +63,7 @@ static void dvb5_handler_win_info ( G_GNUC_UNUSED Status *status, Dvb5Win *win )
 
 static void dvb5_handler_win_close ( G_GNUC_UNUSED Status *status, Dvb5Win *win )
 {
-	gtk_widget_destroy ( GTK_WIDGET ( win ) );
+	gtk_window_destroy (GTK_WINDOW ( win ));
 }
 
 static void dvb5_handler_scan_start ( G_GNUC_UNUSED Status *status, Dvb5Win *win )
@@ -130,8 +129,13 @@ static void dvb5_handler_dvb_name ( G_GNUC_UNUSED Dvb *dvb, const char *dvb_name
 
 static void dvb5_handler_stats_upd ( G_GNUC_UNUSED Dvb *dvb, uint32_t freq, uint8_t qual, char *sgl, char *snr, uint8_t sgl_p, uint8_t snr_p, gboolean fe_lock, Dvb5Win *win )
 {
+	char *size = NULL;
+	g_signal_emit_by_name ( win->zap, "zap-get-size", &size );
+
 	win->fe_lock = fe_lock;
-	g_signal_emit_by_name ( win->status, "status-update", freq, NULL, qual, sgl, snr, sgl_p, snr_p, fe_lock );
+	g_signal_emit_by_name ( win->status, "status-update", freq, size, qual, sgl, snr, sgl_p, snr_p, fe_lock );
+
+	free ( size );
 }
 
 static void dvb5_handler_stats_org ( G_GNUC_UNUSED Dvb *dvb, int num, char *text, Dvb5Win *win )
@@ -179,16 +183,16 @@ static void dvb5_win_create ( Dvb5Win *win )
 	gtk_notebook_append_page ( win->notebook, GTK_WIDGET ( win->status ), gtk_label_new ( "Status" ) );
 
 	gtk_notebook_set_tab_pos ( win->notebook, GTK_POS_TOP );
-	gtk_box_pack_start ( main_vbox, GTK_WIDGET (win->notebook), TRUE, TRUE, 0 );
+	gtk_box_append ( main_vbox, GTK_WIDGET (win->notebook) );
 
-	gtk_container_add  ( GTK_CONTAINER ( window ), GTK_WIDGET ( main_vbox ) );
+	gtk_window_set_child  ( window, GTK_WIDGET ( main_vbox ) );
 
 	gtk_window_present ( GTK_WINDOW ( win ) );
 }
 
 static void dvb5_win_init ( Dvb5Win *win )
 {
-	gtk_icon_theme_add_resource_path ( gtk_icon_theme_get_default (), "/dvbv5" );
+	// gtk_icon_theme_add_resource_path ( gtk_icon_theme_get_for_display (gtk_widget_get_display ( GTK_WIDGET ( win ) )), "/dvbv5" );
 
 	win->dvb = dvb_new ();
 	win->fe_lock = FALSE;

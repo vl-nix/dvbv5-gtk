@@ -3,7 +3,7 @@
 * Gtk interface to [DVBv5 tool](https://www.linuxtv.org/wiki/index.php/DVBv5_Tools)
 * Scan
 * Zap & Record
-* Drag and Drop: Scan, Zap
+* Drag and Drop: Zap
 
 
 #### Dependencies
@@ -11,7 +11,7 @@
 * gcc, meson
 * libudev ( & dev )
 * libdvbv5 ( & dev )
-* libgtk 3.0 ( & dev )
+* libgtk 4 ( & dev )
 
 
 #### Quality
