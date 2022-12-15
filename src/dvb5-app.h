@@ -1,5 +1,5 @@
 /*
-* Copyright 2021 Stepan Perun
+* Copyright 2022 Stepan Perun
 * This program is free software.
 *
 * License: Gnu General Public License GPL-2
@@ -16,4 +16,3 @@
 G_DECLARE_FINAL_TYPE ( Dvb5App, dvb5_app, DVB5, APP, GtkApplication )
 
 Dvb5App * dvb5_app_new ( void );
-

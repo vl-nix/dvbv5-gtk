@@ -1,5 +1,5 @@
 /*
-* Copyright 2021 Stepan Perun
+* Copyright 2022 Stepan Perun
 * This program is free software.
 *
 * License: Gnu General Public License GPL-2
@@ -23,4 +23,3 @@
 G_DECLARE_FINAL_TYPE ( Dvb, dvb, DVB, OBJECT, GObject )
 
 Dvb * dvb_new ( void );
-

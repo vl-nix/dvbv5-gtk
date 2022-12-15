@@ -4,6 +4,7 @@
     <file preprocess="to-pixdata">dvb-dark.png</file>
     <file preprocess="to-pixdata">dvb-info.png</file>
     <file preprocess="to-pixdata">dvb-quit.png</file>
+    <file preprocess="to-pixdata">dvb-list.png</file>
     <file preprocess="to-pixdata">dvb-stop.png</file>
     <file preprocess="to-pixdata">dvb-start.png</file>
 	<file preprocess="to-pixdata">dvb-rec.png</file>

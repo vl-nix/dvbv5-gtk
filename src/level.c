@@ -1,5 +1,5 @@
 /*
-* Copyright 2021 Stepan Perun
+* Copyright 2022 Stepan Perun
 * This program is free software.
 *
 * License: Gnu General Public License GPL-2
@@ -34,8 +34,7 @@ static void level_handler_update ( Level *level, uint8_t qual, char *sgl, char *
 	if ( fe_lock  ) text_l = "00ff00"; else text_l = "ff0000";
 	if ( sgl_gd == 0 && snr_gd == 0 ) text_l = "bfbfbf";
 
-	g_autofree char *markup = g_markup_printf_escaped 
-		( "Quality<span foreground=\"#%s\">  ◉  </span>%s<span foreground=\"#%s\">  ◉  </span>%s", text_q, sgl, text_l, snr );
+	g_autofree char *markup = g_markup_printf_escaped ( "Quality<span foreground=\"#%s\">  ◉  </span>%s<span foreground=\"#%s\">  ◉  </span>%s", text_q, sgl, text_l, snr );
 
 	gtk_label_set_markup ( level->sgn_snr, markup );
 }
@@ -71,8 +70,7 @@ static void level_class_init ( LevelClass *class )
 {
 	G_OBJECT_CLASS (class)->finalize = level_finalize;
 
-	g_signal_new ( "level-update", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 6, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_BOOLEAN );
+	g_signal_new ( "level-update", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 6, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_BOOLEAN );
 }
 
 Level * level_new ( void )

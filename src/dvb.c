@@ -1,5 +1,5 @@
 /*
-* Copyright 2021 Stepan Perun
+* Copyright 2022 Stepan Perun
 * This program is free software.
 *
 * License: Gnu General Public License GPL-2
@@ -33,12 +33,10 @@ struct _Dvb
 	uint8_t thread_stop;
 	uint32_t freq_scan, progs_scan;
 
-	gboolean exit;
+	uint src_tm;
 };
 
 G_DEFINE_TYPE ( Dvb, dvb, G_TYPE_OBJECT )
-
-static void dvb_info_stats ( Dvb *dvb );
 
 static uint8_t _get_delsys ( struct dvb_v5_fe_parms *parms )
 {
@@ -87,6 +85,7 @@ static gpointer dvb_scan_thread ( Dvb *dvb_base )
 
 	int count = 0, shift;
 	uint32_t freq = 0, sys = _get_delsys ( parms );
+
 	enum dvb_sat_polarization pol;
 
 	dvb_file = dvb_read_file_format ( dvb_base->input_file, sys, dvb_base->input_format );
@@ -98,7 +97,7 @@ static gpointer dvb_scan_thread ( Dvb *dvb_base )
 		dvb_base->demux_dev = NULL;
 
 		g_mutex_clear ( &dvb_base->mutex );
-		g_critical ( "%s:: Read file format failed.", __func__ );
+		g_warning ( "%s:: Read file format failed.", __func__ );
 		return NULL;
 	}
 
@@ -153,8 +152,7 @@ static gpointer dvb_scan_thread ( Dvb *dvb_base )
 
 		dvb_store_channel ( &dvb_file_new, parms, dvb_scan_handler, dvb_base->get_detect, dvb_base->get_nit );
 
-		if ( !dvb_base->new_freqs )
-			dvb_add_scaned_transponders ( parms, dvb_scan_handler, dvb_file->first_entry, entry );
+		if ( !dvb_base->new_freqs ) dvb_add_scaned_transponders ( parms, dvb_scan_handler, dvb_file->first_entry, entry );
 
 		dvb_scan_free_handler_table ( dvb_scan_handler );
 	}
@@ -167,10 +165,13 @@ static gpointer dvb_scan_thread ( Dvb *dvb_base )
 	dvb_dev_close ( dmx_fd );
 
 	g_mutex_lock ( &dvb_base->mutex );
+		dvb_base->freq_scan = 0;
 		dvb_base->thread_stop = 1;
 	g_mutex_unlock ( &dvb_base->mutex );
 
 	g_mutex_clear ( &dvb_base->mutex );
+
+	g_signal_emit_by_name ( dvb_base, "dvb-scan-done" );
 
 	dvb_dev_free ( dvb );
 	dvb_base->dvb_scan  = NULL;
@@ -197,7 +198,7 @@ static const char * dvb_scan ( Dvb *dvb )
 		dvb_dev_free ( dvb->dvb_scan );
 		dvb->dvb_scan = NULL;
 
-		g_critical ( "%s:: Couldn't find demux device node.", __func__ );
+		g_warning ( "%s:: Couldn't find demux device node.", __func__ );
 		return "Couldn't find demux device.";
 	}
 
@@ -211,7 +212,7 @@ static const char * dvb_scan ( Dvb *dvb )
 		dvb_dev_free ( dvb->dvb_scan );
 		dvb->dvb_scan = NULL;
 
-		g_critical ( "%s:: Couldn't find frontend device.", __func__ );
+		g_warning ( "%s:: Couldn't find frontend device.", __func__ );
 		return "Couldn't find frontend device.";
 	}
 
@@ -234,8 +235,6 @@ static const char * dvb_scan ( Dvb *dvb )
 
 	dvb->freq_scan  = 0;
 	dvb->progs_scan = 0;
-
-	dvb_info_stats ( dvb );
 
 	dvb->thread = g_thread_new ( "scan-thread", (GThreadFunc)dvb_scan_thread, dvb );
 	g_thread_unref ( dvb->thread );
@@ -301,7 +300,7 @@ static uint8_t dvb_zap_parse ( const char *file, const char *channel, uint8_t fr
 
 	if ( !dvb_file )
 	{
-		g_critical ( "%s:: Read file format failed.", __func__ );
+		g_warning ( "%s:: Read file format failed.", __func__ );
 		return 0;
 	}
 
@@ -336,7 +335,7 @@ static uint8_t dvb_zap_parse ( const char *file, const char *channel, uint8_t fr
 
 	if ( !entry )
 	{
-		g_critical ( "%s:: channel %s | file %s | Can't find channel.", __func__, channel, file );
+		g_warning ( "%s:: channel %s | file %s | Can't find channel.", __func__, channel, file );
 
 		dvb_file_free ( dvb_file );
 		return 0;
@@ -442,7 +441,7 @@ static void dvb_zap_set_dmx ( Dvb *dvb )
 		if ( dvb->video_fd )
 			dvb_zap_set_pes_filter ( dvb->video_fd, dvb->pids[1], DMX_PES_VIDEO, dvb->descr_num, bsz );
 		else
-			g_critical ( "%s:: VIDEO: failed opening %s", __func__, dvb->demux_dev );
+			g_warning ( "%s:: VIDEO: failed opening %s", __func__, dvb->demux_dev );
 	}
 
 	if ( dvb->pids[2] )
@@ -452,7 +451,7 @@ static void dvb_zap_set_dmx ( Dvb *dvb )
 		if ( dvb->audio_fd )
 			dvb_zap_set_pes_filter ( dvb->audio_fd, dvb->pids[2], DMX_PES_AUDIO, dvb->descr_num, bsz );
 		else
-			g_critical ( "%s:: AUDIO: failed opening %s", __func__, dvb->demux_dev );
+			g_warning ( "%s:: AUDIO: failed opening %s", __func__, dvb->demux_dev );
 	}
 }
 
@@ -474,7 +473,7 @@ static const char * dvb_zap ( uint8_t a, uint8_t f, uint8_t d, uint8_t num, cons
 		dvb_dev_free ( dvb->dvb_zap );
 		dvb->dvb_zap = NULL;
 
-		g_critical ( "%s: Couldn't find demux device node.", __func__ );
+		g_warning ( "%s: Couldn't find demux device node.", __func__ );
 		return "Couldn't find demux device.";
 	}
 
@@ -487,7 +486,7 @@ static const char * dvb_zap ( uint8_t a, uint8_t f, uint8_t d, uint8_t num, cons
 		dvb_dev_free ( dvb->dvb_zap );
 		dvb->dvb_zap = NULL;
 
-		g_critical ( "%s: Couldn't find dvr device node.", __func__ );
+		g_warning ( "%s: Couldn't find dvr device node.", __func__ );
 		return "Couldn't find dvr device.";
 	}
 
@@ -498,7 +497,7 @@ static const char * dvb_zap ( uint8_t a, uint8_t f, uint8_t d, uint8_t num, cons
 		dvb_dev_free ( dvb->dvb_zap );
 		dvb->dvb_zap = NULL;
 
-		g_critical ( "%s: Couldn't find frontend device node.", __func__ );
+		g_warning ( "%s: Couldn't find frontend device node.", __func__ );
 		return "Couldn't find frontend device.";
 	}
 
@@ -522,7 +521,7 @@ static const char * dvb_zap ( uint8_t a, uint8_t f, uint8_t d, uint8_t num, cons
 		dvb_dev_free ( dvb->dvb_zap );
 		dvb->dvb_zap = NULL;
 
-		g_critical ( "%s:: Zap parse failed.", __func__ );
+		g_warning ( "%s:: Zap parse failed.", __func__ );
 		return "Zap parse failed.";
 	}
 
@@ -534,7 +533,7 @@ static const char * dvb_zap ( uint8_t a, uint8_t f, uint8_t d, uint8_t num, cons
 
 		dvb_zap_set_dmx ( dvb );
 
-		g_message ( "%s:: Zap Ok.", __func__ );
+		g_debug ( "%s:: Zap Ok.", __func__ );
 	}
 	else
 	{
@@ -544,8 +543,6 @@ static const char * dvb_zap ( uint8_t a, uint8_t f, uint8_t d, uint8_t num, cons
 		g_warning ( "%s:: Zap failed.", __func__ );
 		return "Zap failed.";
 	}
-
-	dvb_info_stats ( dvb );
 
 	return NULL;
 }
@@ -579,15 +576,14 @@ static void dvb_handler_zap_stop ( Dvb *dvb )
 		dvb->dvb_zap = NULL;
 		dvb->demux_dev = NULL;
 	}
+
+	dvb->freq_scan = 0;
 }
 
 static int _frontend_stats ( struct dvb_v5_fe_parms *parms, Dvb *dvb )
 {
 	char buf[512], *p;
-	int rc, i, len, show;
-
-	rc = dvb_fe_get_stats ( parms );
-	if ( rc ) return -1;
+	int i, len, show;
 
 	p = buf;
 	len = sizeof(buf);
@@ -600,21 +596,23 @@ static int _frontend_stats ( struct dvb_v5_fe_parms *parms, Dvb *dvb )
 		dvb_fe_snprintf_stat ( parms, DTV_QUALITY, "Quality ", i, &p, &len, &show );
 		dvb_fe_snprintf_stat ( parms, DTV_STAT_SIGNAL_STRENGTH, "  Signal ", i, &p, &len, &show );
 		dvb_fe_snprintf_stat ( parms, DTV_STAT_CNR, "  C/N ", i, &p, &len, &show );
+		dvb_fe_snprintf_stat ( parms, DTV_BER, "  Ber ", i,  &p, &len, &show );
 /*
 		dvb_fe_snprintf_stat ( parms, DTV_STAT_ERROR_BLOCK_COUNT, "UCB", i,  &p, &len, &show );
-		dvb_fe_snprintf_stat ( parms, DTV_BER, "postBER", i,  &p, &len, &show );
 		dvb_fe_snprintf_stat ( parms, DTV_PRE_BER, "preBER", i,  &p, &len, &show );
 		dvb_fe_snprintf_stat ( parms, DTV_PER, "PER", i,  &p, &len, &show );
 */
 		if ( p != buf )
 		{
-			// g_message ( "%d: %s ", i, buf );
+			// g_message ( "%s:: %d: %s ", __func__, i, buf );
 
 			g_signal_emit_by_name ( dvb, "stats-org", i, buf );
 
 			p = buf;
 			len = sizeof(buf);
 		}
+		else
+			g_signal_emit_by_name ( dvb, "stats-org", i, NULL );
 	}
 
 	return 0;
@@ -628,19 +626,29 @@ static void dvb_fe_stat_get ( Dvb *dvb )
 
 	if ( rc ) { g_warning ( "%s:: failed.", __func__ ); return; }
 
-	uint32_t freq = 0, qual = 0;
+	uint32_t qual = 0; //, freq = 0;
 	gboolean fe_lock = FALSE;
 
 	fe_status_t status;
 	dvb_fe_retrieve_stats ( parms, DTV_STATUS,  &status );
 	dvb_fe_retrieve_stats ( parms, DTV_QUALITY,   &qual );
-	dvb_fe_retrieve_parm  ( parms, DTV_FREQUENCY, &freq );
+	// dvb_fe_retrieve_parm  ( parms, DTV_FREQUENCY, &freq );
 
 	if ( status & FE_HAS_LOCK ) fe_lock = TRUE;
 
 	uint32_t sgl = 0, snr = 0;
 	dvb_fe_retrieve_stats ( parms, DTV_STAT_CNR, &snr );
 	dvb_fe_retrieve_stats ( parms, DTV_STAT_SIGNAL_STRENGTH, &sgl );
+
+	if ( qual == 0 && fe_lock )
+	{
+		enum fecap_scale_params scale;
+		float ber = dvb_fe_retrieve_ber ( parms, 0, &scale );
+
+		qual = ( snr >= 65535 / 2 ) ? DVB_QUAL_OK : DVB_QUAL_POOR;
+
+		if ( snr == 65535 || ber < 200 ) qual = DVB_QUAL_GOOD;
+	}
 
 	uint8_t sgl_p = (uint8_t)(sgl * 100 / 65535), snr_p = (uint8_t)(snr * 100 / 65535);
 
@@ -650,12 +658,14 @@ static void dvb_fe_stat_get ( Dvb *dvb )
 	char snr_s[256];
 	sprintf ( snr_s, "C/N:  %u%% ", snr_p );
 
-	g_signal_emit_by_name ( dvb, "stats-update", dvb->freq_scan, qual, sgl_s, snr_s, sgl_p, snr_p, fe_lock );
+	// dvb->freq_scan = ( dvb->freq_scan ) ? dvb->freq_scan : ( ( fe_lock ) ? freq : 0 );
+	// g_message ( "%s: %u ", __func__, dvb->freq_scan );
 
 	_frontend_stats ( parms, dvb );
+	g_signal_emit_by_name ( dvb, "stats-update", dvb->freq_scan, qual, sgl_s, snr_s, sgl_p, snr_p, fe_lock );
 }
 
-static const char * dvb_info ( uint8_t adapter, uint8_t frontend, Dvb *dvb )
+static const char * dvb_fe_create ( uint8_t adapter, uint8_t frontend, Dvb *dvb )
 {
 	dvb->dvb_fe = dvb_dev_alloc ();
 
@@ -668,13 +678,17 @@ static const char * dvb_info ( uint8_t adapter, uint8_t frontend, Dvb *dvb )
 
 	if ( !dvb_dev_fe )
 	{
-		g_critical ( "%s: Couldn't find demux device.", __func__ );
-		return "Couldn't find demux device.";
+		dvb_dev_free ( dvb->dvb_fe ); dvb->dvb_fe = NULL;
+
+		g_warning ( "%s: Couldn't find frontend device.", __func__ );
+		return "Couldn't find frontend device.";
 	}
 
 	if ( !dvb_dev_open ( dvb->dvb_fe, dvb_dev_fe->sysname, O_RDONLY ) )
 	{
-		g_critical ( "%s: Opening device failed.", __func__ );
+		dvb_dev_free ( dvb->dvb_fe ); dvb->dvb_fe = NULL;
+
+		g_warning ( "%s: Opening device failed.", __func__ );
 		return "Opening device failed.";
 	}
 
@@ -683,56 +697,54 @@ static const char * dvb_info ( uint8_t adapter, uint8_t frontend, Dvb *dvb )
 
 static void dvb_handler_dvb_info ( Dvb *dvb, uint8_t adapter, uint8_t frontend )
 {
-	const char *error = dvb_info ( adapter, frontend, dvb );
+	if ( dvb->dvb_fe ) { dvb_dev_free ( dvb->dvb_fe ); dvb->dvb_fe = NULL; }
+
+	const char *error = dvb_fe_create ( adapter, frontend, dvb );
 
 	if ( error )
 	{
 		g_signal_emit_by_name ( dvb, "dvb-name", "Undefined" );
-	}
-	else
-	{
-		struct dvb_v5_fe_parms *parms = dvb->dvb_fe->fe_parms;
+		g_signal_emit_by_name ( dvb, "dvb-scan-info", error  );
 
-		g_autofree char *ret = g_strdup ( parms->info.name );
-
-		g_signal_emit_by_name ( dvb, "dvb-name", ret );
+		return;
 	}
 
-	if ( dvb->dvb_fe ) { dvb_dev_free ( dvb->dvb_fe ); dvb->dvb_fe = NULL; }
+	struct dvb_v5_fe_parms *parms = dvb->dvb_fe->fe_parms;
+
+	g_autofree char *ret = g_strdup ( parms->info.name );
+
+	g_signal_emit_by_name ( dvb, "dvb-name", ret );
 }
 
 static gboolean dvb_info_show_stats ( Dvb *dvb )
 {
-	if ( dvb->exit ) return FALSE;
-
-	if ( dvb->dvb_scan == NULL && dvb->dvb_zap == NULL )
-	{
-		if ( dvb->dvb_fe ) { dvb_dev_free ( dvb->dvb_fe ); dvb->dvb_fe = NULL; }
-
+	if ( !dvb->dvb_fe )
 		g_signal_emit_by_name ( dvb, "stats-update", 0, 0, "Signal", "C/N", 0, 0, FALSE );
-
-		return FALSE;
-	}
-
-	dvb_fe_stat_get ( dvb );
+	else
+		dvb_fe_stat_get ( dvb );
 
 	return TRUE;
 }
 
 static void dvb_info_stats ( Dvb *dvb )
 {
-	const char *error = dvb_info ( dvb->adapter, dvb->frontend, dvb );
+	const char *error = dvb_fe_create ( dvb->adapter, dvb->frontend, dvb );
 
 	if ( error )
 		g_signal_emit_by_name ( dvb, "dvb-scan-info", error );
 	else
-		g_timeout_add ( 250, (GSourceFunc)dvb_info_show_stats, dvb );
+		dvb->src_tm = g_timeout_add ( 250, (GSourceFunc)dvb_info_show_stats, dvb );
+}
+
+static void dvb_handler_dvb_msec ( Dvb *dvb, uint16_t msec )
+{
+	g_source_remove ( dvb->src_tm );
+
+	dvb->src_tm = g_timeout_add ( msec, (GSourceFunc)dvb_info_show_stats, dvb );
 }
 
 static void dvb_init ( Dvb *dvb )
 {
-	dvb->exit = FALSE;
-
 	dvb->dvb_fe = NULL;
 	dvb->dvb_zap = NULL;
 	dvb->dvb_scan = NULL;
@@ -768,18 +780,23 @@ static void dvb_init ( Dvb *dvb )
 	dvb->input_format  = FILE_DVBV5;
 	dvb->output_format = FILE_DVBV5;
 
-	g_signal_connect ( dvb, "dvb-info",      G_CALLBACK ( dvb_handler_dvb_info  ), NULL );
+	g_signal_connect ( dvb, "dvb-scan",      G_CALLBACK ( dvb_handler_scan      ), NULL );
+	g_signal_connect ( dvb, "dvb-scan-stop", G_CALLBACK ( dvb_handler_scan_stop ), NULL );
+
 	g_signal_connect ( dvb, "dvb-zap",       G_CALLBACK ( dvb_handler_zap       ), NULL );
 	g_signal_connect ( dvb, "dvb-zap-stop",  G_CALLBACK ( dvb_handler_zap_stop  ), NULL );
-	g_signal_connect ( dvb, "dvb-scan-stop", G_CALLBACK ( dvb_handler_scan_stop ), NULL );
-	g_signal_connect ( dvb, "dvb-scan-set-data", G_CALLBACK ( dvb_handler_scan  ), NULL );
+
+	g_signal_connect ( dvb, "dvb-info",      G_CALLBACK ( dvb_handler_dvb_info  ), NULL );
+	g_signal_connect ( dvb, "dvb-fe-msec",    G_CALLBACK ( dvb_handler_dvb_msec  ), NULL );
+
+	dvb_info_stats ( dvb );
 }
 
 static void dvb_finalize ( GObject *object )
 {
 	Dvb *dvb = DVB_OBJECT ( object );
 
-	dvb->exit = TRUE;
+	g_source_remove ( dvb->src_tm );
 
 	if ( dvb->input_file  ) free ( dvb->input_file  );
 	if ( dvb->output_file ) free ( dvb->output_file );
@@ -801,38 +818,25 @@ static void dvb_class_init ( DvbClass *class )
 
 	oclass->finalize = dvb_finalize;
 
-	g_signal_new ( "stats-org", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 2, G_TYPE_INT, G_TYPE_STRING );
+	g_signal_new ( "dvb-name",      G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_STRING );
+	g_signal_new ( "dvb-scan-info", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_STRING );
+	g_signal_new ( "dvb-info",      G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 2, G_TYPE_UINT, G_TYPE_UINT );
+	
+	g_signal_new ( "dvb-zap-stop", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 0 );
+	g_signal_new ( "dvb-zap",      G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 6, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING );
 
-	g_signal_new ( "dvb-name", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_STRING );
+	g_signal_new ( "dvb-scan-stop", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 0 );
+	g_signal_new ( "dvb-scan-done", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 0 );
+	g_signal_new ( "dvb-scan",      G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 16, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, 
+		G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INT, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING );
 
-	g_signal_new ( "dvb-info", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 2, G_TYPE_UINT, G_TYPE_UINT );
-
-	g_signal_new ( "dvb-scan-stop", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 0 );
-
-	g_signal_new ( "dvb-scan-info", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_STRING );
-
-	g_signal_new ( "dvb-zap", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 6, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING );
-
-	g_signal_new ( "dvb-zap-stop", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 0 );
-
-	g_signal_new ( "dvb-scan-set-data", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 16, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, 
-		G_TYPE_INT, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING );
-
-	g_signal_new ( "stats-update", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST,
-		0, NULL, NULL, NULL, G_TYPE_NONE, 7, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_BOOLEAN );
+	g_signal_new ( "dvb-fe-msec",  G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_UINT );
+	g_signal_new ( "stats-org",    G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 2, G_TYPE_INT, G_TYPE_STRING );
+	g_signal_new ( "stats-update", G_TYPE_FROM_CLASS ( class ), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 7, 
+		G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_BOOLEAN );
 }
 
 Dvb * dvb_new ( void )
 {
-	Dvb *dvb = g_object_new ( DVB_TYPE_OBJECT, NULL );
-
-	return dvb;
+	return g_object_new ( DVB_TYPE_OBJECT, NULL );
 }
