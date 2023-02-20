@@ -1,4 +1,4 @@
-project('dvbv5-gtk', 'c', version: '22.10', meson_version: '>= 0.50.0', default_options: ['warning_level=2', 'c_std=gnu11'])
+project('dvbv5-gtk', 'c', version: '22.11', meson_version: '>= 0.50.0', default_options: ['warning_level=2', 'c_std=gnu11'])
 
 c_args = ['-DVERSION="' + meson.project_version() + '"']
 

@@ -16,6 +16,7 @@
 #include <linux/dvb/dmx.h>
 
 #define MAX_STATS 4 // MAX_DTV_STATS
+#define DMX_OUT_ALL_PIDS 4
 
 enum col_tree
 {
@@ -43,7 +44,8 @@ const OutDemux out_demux_n[] =
 	{ DMX_OUT_DECODER, 		"DMX_OUT_DECODER" 	  },
 	{ DMX_OUT_TAP, 			"DMX_OUT_TAP"		  },
 	{ DMX_OUT_TS_TAP, 		"DMX_OUT_TS_TAP" 	  },
-	{ DMX_OUT_TSDEMUX_TAP, 	"DMX_OUT_TSDEMUX_TAP" }
+	{ DMX_OUT_TSDEMUX_TAP, 	"DMX_OUT_TSDEMUX_TAP" },
+	{ DMX_OUT_ALL_PIDS, 	"DMX_OUT_ALL_PIDS" 	  }
 };
 
 typedef struct _DvbLnb DvbLnb;
@@ -846,7 +848,7 @@ static gboolean zap_monitor_dvr_rec ( Dvb5Win *win )
 {
 	if ( !GTK_IS_TREE_VIEW ( win->treeview ) ) return FALSE;
 
-	if ( win->stop_dvr_rec ) { win->monitor_dvr->active = 0; return FALSE; }
+	if ( win->stop_dvr_rec ) { gtk_label_set_text ( win->dvr_rec, "" ); win->monitor_dvr->active = 0; return FALSE; }
 
 	g_autofree char *str_size = g_format_size ( win->monitor_dvr->size_file );
 	g_autofree char *str = g_strdup_printf ( "%u Kbps / %s", win->monitor_dvr->bitrate, str_size );
@@ -904,7 +906,7 @@ static void zap_dvr_rec ( G_GNUC_UNUSED GtkButton *button, Dvb5Win *win )
 
 	if ( !file_rec ) return;
 
-	Monitor *monitor = zap_create_monitor ( COL_NUM, 0, win );
+	Monitor *monitor = zap_create_monitor ( COL_NUM, "0", win );
 
 	win->stop_dvr_rec = FALSE;
 	win->monitor_dvr = monitor;

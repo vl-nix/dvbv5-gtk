@@ -2,7 +2,7 @@
 
 * Gtk interface to [DVBv5 tool](https://www.linuxtv.org/wiki/index.php/DVBv5_Tools)
 * Scan & Zap & Fe
-* Drag and Drop & Command line argument
+* Drag and Drop & Command line argument:
   * Initial file -> Scan; dvb_channel.conf -> Zap
 
 
@@ -28,7 +28,7 @@
 
 3. Build: ninja -C build
 
-4. Install: sudo ninja -C build install
+4. Install: ninja install -C build
 
-5. Uninstall: sudo ninja -C build uninstall
+5. Uninstall: ninja uninstall -C build
 

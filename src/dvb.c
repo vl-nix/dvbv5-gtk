@@ -434,6 +434,18 @@ static void dvb_zap_set_dmx ( Dvb *dvb )
 
 	uint32_t bsz = ( dvb->descr_num == DMX_OUT_TS_TAP || dvb->descr_num == 4 ) ? 64 * 1024 : 0;
 
+	if ( dvb->descr_num == 4 )
+	{
+		dvb->video_fd = dvb_dev_open ( dvb->dvb_zap, dvb->demux_dev, O_RDWR );
+
+		if ( dvb->video_fd )
+			dvb_zap_set_pes_filter ( dvb->video_fd, 0x2000, DMX_PES_OTHER, DMX_OUT_TS_TAP, bsz );
+		else
+			g_critical ( "%s:: failed opening %s", __func__, dvb->demux_dev );
+
+		return;
+	}
+
 	if ( dvb->pids[1] )
 	{
 		dvb->video_fd = dvb_dev_open ( dvb->dvb_zap, dvb->demux_dev, O_RDWR );
